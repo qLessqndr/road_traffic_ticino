@@ -115,7 +115,7 @@ def find_nearby_traffic(coords, radius_km=1):
     return None
 
 
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = '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'
 REPO = 'qLessqndr/road_traffic_ticino'
 
 def save_to_github(filename, content):
@@ -292,5 +292,5 @@ def schedule_task():
 
 if __name__ == '__main__':
     webbrowser.open("http://127.0.0.1:5000/")
-    schedule_task()
+    #schedule_task()
     app.run(host='0.0.0.0', port=5000, debug=True)
