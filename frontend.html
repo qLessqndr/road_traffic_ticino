@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.8">
+    <title>Traffic Analysis in Ticino</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            font-family: 'Poppins', sans-serif;
+            padding: 20px;
+            background-color: transparent;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://www.swissinfo.ch/content/wp-content/uploads/sites/13/2024/05/trafficjam.jpg?crop=0px,0px,1300px,867px&w=880&ver=1e334e43') no-repeat center center fixed;
+            background-size: cover;
+            filter: blur(10px);
+            z-index: -1;
+        }
+
+        h3 {
+            color: rgb(238, 238, 238);
+            text-align: center;
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .title-box {
+            background: rgba(255, 255, 255, 0);
+            /*backdrop-filter: blur(25px);*/
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 99%;
+            margin-bottom: 12px;
+            z-index: 1;
+        }
+
+        .title {
+            text-transform: uppercase;
+            font-size: 2.5em;
+            font-weight: 700;
+            color: rgb(255, 255, 255);
+            text-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.5),
+                0 0 25px rgba(255, 255, 255, 0.5);
+        }
+
+        .box {
+            width: 99%;
+            height: 600px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0);
+            /*backdrop-filter: blur(25px);*/
+            display: flex;
+        }
+
+        #map {
+            width: 85%;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 15%;
+            padding: 20px;
+            background-color: #ffffff00;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(25px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .file-list,
+        #loadFileName,
+        button,
+        label,
+        input[type="date"] {
+            display: block;
+            margin-bottom: 15px;
+            width: 100%;
+            font-size: 1em;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #27292b;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #292b2e;
+            color: rgb(255, 255, 255);
+        }
+
+        .btn-primary:hover {
+            background-color: #74777a;
+        }
+
+        .btn-secondary {
+            background-color: #4d2457;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #6f6bac;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #resetMap,
+        #saveData,
+        #updateTrafficData {
+            margin-bottom: 10px;
+        }
+
+        .box2 {
+            width: 99%;
+            height: auto;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            backdrop-filter: blur(25px);
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .historical-data {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .historical-data h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .historical-data label {
+            margin-top: 15px;
+        }
+
+        .historical-data h3 {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="title-box">
+        <h3 class="title">Road Traffic Analysis in Ticino - Made by Humans</h3>
+    </div>
+    <div class="box">
+        <div id="map"></div>
+        <div class="sidebar">
+            <div class="historical-data">
+                <h4>Historical</h4>
+                <label for="dateInput">Choose date:</label>
+                <input type="date" id="dateInput">
+                <label for="loadFileName">Choose time:</label>
+                <select id="loadFileName"></select>
+                <button class="btn-primary" id="loadData">LOAD</button>
+                <button class="btn-secondary" id="resetMap">RESET</button>
+            </div>
+            <div class="button-container">
+                <button class="btn-primary" id="saveData">SAVE</button>
+                <button class="btn-secondary" id="updateTrafficData">GATHER DATA</button>
+            </div>
+        </div>
+    </div>
+    <div class="box2">
+        <h4>Analysis</h4>
+        <p>Qui mettiamo i grafici e altre informazioni</p>
+        <p>   ;_;   </p>
+    </div>
+
+    <script>
+        var map = L.map('map').setView([46.1512, 8.7366], 10);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        }).addTo(map);
+
+        var markers = [];
+        var lines = [];
+        var trafficData = [];
+
+        function resetMapElements() {
+            lines.forEach(line => map.removeLayer(line));
+            lines = [];
+            trafficData = [];
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+        }
+
+        document.getElementById('resetMap').addEventListener('click', function() {
+            resetMapElements();
+        });
+
+        map.on('click', function(e) {
+            var lat = e.latlng.lat;
+            var lon = e.latlng.lng;
+            fetch('/get_point_traffic?lat=' + lat + '&lon=' + lon)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.features && data.features.length > 0) {
+                        displayTrafficData(data);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading point traffic data:", error);
+                });
+        });
+
+        function displayTrafficData(data) {
+            if (!data.features || data.features.length === 0) return;
+
+            data.features.forEach(function(item) {
+                if (item.geometry && item.geometry.coordinates) {
+                    var lineCoordinates = item.geometry.coordinates.map(function(coord) {
+                        return [coord[1], coord[0]];
+                    });
+
+                    var line = L.polyline(lineCoordinates, {
+                        color: item.properties.color || 'gray',
+                        weight: 5
+                    }).addTo(map);
+
+                    lines.push(line);
+
+                    var speedLimit = item.properties.speed_limit || 'N/A';
+                    var currentSpeed = item.properties.current_speed || 'N/A';
+                    line.bindTooltip("Speed Limit: " + speedLimit + " km/h<br>Current Speed: " + currentSpeed + " km/h", {
+                        permanent: false, direction: 'auto'
+                    });
+
+                    trafficData.push({
+                        coordinates: lineCoordinates,
+                        color: item.properties.color,
+                        speed_limit: speedLimit,
+                        current_speed: currentSpeed
+                    });
+                }
+            });
+        }
+
+        document.getElementById('dateInput').addEventListener('change', function() {
+            var selectedDate = document.getElementById('dateInput').value;
+            if (!selectedDate) return;
+
+            fetch('/get_files_for_date?date=' + selectedDate)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    var fileList = document.getElementById('loadFileName');
+                    fileList.innerHTML = '';
+                    data.files.forEach(function(file) {
+                        var timePart = file.split('_').pop().replace('.csv', '').replace('-', ':');
+                        var option = document.createElement('option');
+                        option.value = file;
+                        option.textContent = timePart;
+                        fileList.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error loading files:", error);
+                });
+        });
+
+        document.getElementById('loadData').addEventListener('click', function() {
+            var selectedFile = document.getElementById('loadFileName').value;
+            if (!selectedFile) return;
+
+            fetch('/load_traffic_data?file=' + selectedFile)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    resetMapElements();
+                    displayTrafficData(data);
+                })
+                .catch(error => {
+                    console.error("Error loading traffic data:", error);
+                });
+        });
+
+        document.getElementById('updateTrafficData').addEventListener('click', function() {
+
+            fetch('/update_traffic_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: trafficData })
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Traffic data updated successfully!");
+                })
+                .catch(error => {
+                    console.error("Error updating traffic data:", error);
+                });
+        });
+
+        document.getElementById('saveData').addEventListener('click', function() {
+            if (trafficData.length === 0) return;
+
+            fetch('/save_traffic_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: trafficData })
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Traffic data saved successfully!");
+                })
+                .catch(error => {
+                    console.error("Error saving traffic data:", error);
+                });
+        });
+    </script>
+</body>
+
+</html>
