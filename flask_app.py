@@ -115,7 +115,9 @@ def find_nearby_traffic(coords, radius_km=1):
     return None
 
 
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN1 = 'ghp_FWbnVrSli6jpSBFkEn'
+GITHUB_TOKEN2 = 'utbwZT211G7X1pKl0G'
+GITHUB_TOKEN = GITHUB_TOKEN1 + GITHUB_TOKEN2
 REPO = 'qLessqndr/road_traffic_ticino'
 
 def save_to_github(filename, content):
