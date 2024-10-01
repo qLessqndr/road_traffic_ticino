@@ -45,7 +45,6 @@
 
         .title-box {
             background: rgba(255, 255, 255, 0);
-            /*backdrop-filter: blur(25px);*/
             padding: 10px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -71,13 +70,13 @@
             border-radius: 8px;
             overflow: hidden;
             background-color: rgba(255, 255, 255, 0);
-            /*backdrop-filter: blur(25px);*/
             display: flex;
         }
 
         #map {
             width: 85%;
             height: 100%;
+            z-index: 8;
         }
 
         .sidebar {
@@ -177,6 +176,105 @@
             font-size: 1.2em;
             margin-bottom: 30px;
         }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            display: none; /* Hidden by default */
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.5em;
+            z-index: 11;
+        }
+
+        @media (max-width: 768px) {
+            html, body {
+                padding: 10px;
+            }
+
+            .title-box {
+                width: 100%;
+            }
+
+            .title {
+                font-size: 2em;
+            }
+
+            .box {
+                flex-direction: column;
+                height: auto;
+            }
+
+            #map {
+                width: 100%;
+                height: 400px;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 10px;
+            }
+
+            button, input[type="date"], select {
+                padding: 10px;
+                font-size: 1em;
+            }
+
+            .box2 {
+                width: 100%;
+                padding: 15px;
+                margin-top: 20px;
+            }
+
+            .box2 h4, .box2 p {
+                font-size: 1.1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title-box {
+                padding: 5px;
+            }
+
+            .title {
+                font-size: 1.5em;
+            }
+
+            #map {
+                height: 300px;
+            }
+
+            .sidebar {
+                padding: 5px;
+            }
+
+            button, input[type="date"], select {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+
+            .box2 {
+                padding: 10px;
+            }
+
+            .box2 h4, .box2 p {
+                font-size: 1em;
+            }
+
+            .historical-data h4, .historical-data label {
+                font-size: 0.9em;
+            }
+        }
     </style>
 </head>
 
@@ -202,6 +300,9 @@
             </div>
         </div>
     </div>
+    <div class="loading-overlay">
+        <div class="loading-text">Loading...</div>
+    </div>
     <div class="box2">
         <h4>Analysis</h4>
         <p>Qui mettiamo i grafici e altre informazioni</p>
@@ -219,6 +320,16 @@
         var lines = [];
         var trafficData = [];
 
+        let loadingOverlay = document.querySelector('.loading-overlay');
+
+        function showLoadingOverlay() {
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoadingOverlay() {
+            loadingOverlay.style.display = 'none';
+        }
+
         function resetMapElements() {
             lines.forEach(line => map.removeLayer(line));
             lines = [];
@@ -234,6 +345,7 @@
         map.on('click', function(e) {
             var lat = e.latlng.lat;
             var lon = e.latlng.lng;
+            showLoadingOverlay();
             fetch('/get_point_traffic?lat=' + lat + '&lon=' + lon)
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
@@ -246,6 +358,9 @@
                 })
                 .catch(error => {
                     console.error("Error loading point traffic data:", error);
+                })
+                .finally(() => {
+                    hideLoadingOverlay();
                 });
         });
 
@@ -309,6 +424,7 @@
         document.getElementById('loadData').addEventListener('click', function() {
             var selectedFile = document.getElementById('loadFileName').value;
             if (!selectedFile) return;
+            showLoadingOverlay();
 
             fetch('/load_traffic_data?file=' + selectedFile)
                 .then(response => {
@@ -321,11 +437,22 @@
                 })
                 .catch(error => {
                     console.error("Error loading traffic data:", error);
+                })
+                .finally(() => {
+                    hideLoadingOverlay();
                 });
         });
 
         document.getElementById('updateTrafficData').addEventListener('click', function() {
 
+            const password = prompt("Please enter the password to gather data:");
+            const correctPassword = "orcodio22"; // Set your password here
+
+            if (password === correctPassword) {
+                showLoadingOverlay();
+            const updateButton = this;
+            updateButton.disabled = true;
+            updateButton.style.display = "none";
             fetch('/update_traffic_data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -340,7 +467,13 @@
                 })
                 .catch(error => {
                     console.error("Error updating traffic data:", error);
+                })
+                .finally(() => {
+                    updateButton.disabled = false;
+                    updateButton.style.display = "block";
+                    hideLoadingOverlay();
                 });
+            }
         });
 
         document.getElementById('saveData').addEventListener('click', function() {
