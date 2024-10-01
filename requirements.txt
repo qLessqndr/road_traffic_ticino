@@ -2,3 +2,7 @@ Flask
 folium
 geopy
 pandas
+geopandas
+requests
+shapely
+numpy
