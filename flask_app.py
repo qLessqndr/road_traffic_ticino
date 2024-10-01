@@ -53,6 +53,8 @@ def get_traffic_data(lat, lon):
 
 
 def get_color_by_congestion(current_speed, speed_limit):
+    if speed_limit is None:
+        speed_limit = 50
     if current_speed is None:
         return 'gray'
     congestion_level = current_speed / speed_limit if speed_limit else 0
