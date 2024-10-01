@@ -4,12 +4,14 @@ import geopandas as gpd
 import requests
 import xml.etree.ElementTree as ET
 
-#API_KEY = 'LwAGCFlGMgalWGjLjEINzWRRqwJaEkSH'
-API_KEY = '9rOohoq8cY5OfzXX6eEWyJ3OKTc4Evwy'
-#API_KEY = 'svPxr72ecAxZZbNeHVBrSUkgzdTeucBH'
+API_KEY1 = 'LwAGCFlGMgalWGjLjEINzWRRqwJaEkSH'
+API_KEY2 = '9rOohoq8cY5OfzXX6eEWyJ3OKTc4Evwy'
+API_KEY3 = 'svPxr72ecAxZZbNeHVBrSUkgzdTeucBH'
 
-def get_traffic_data(coords):
-    api_url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/xml?key={API_KEY}&point={coords}"
+API_KEYS = [API_KEY1, API_KEY2, API_KEY3]
+
+def get_traffic_data(coords, key=API_KEY1, index=0):
+    api_url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/xml?key={key}&point={coords}"
     try:
         response = requests.get(api_url, timeout=0.5)
 
@@ -23,6 +25,8 @@ def get_traffic_data(coords):
                 print(f"Unsupported content type: {content_type}")
                 return None
         else:
+            if(index+1 < len(API_KEYS)):
+                return get_traffic_data(coords, API_KEYS[index+1], index+1)
             print(f"Error: {response.status_code}")
             print(f"Response Text: {response.text}")
             return None
