@@ -5,11 +5,16 @@ import get_speedbox
 import route_calculator
 import geopy.distance
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import ast
 from geopy.distance import geodesic
 import webbrowser
+import requests
+import io
+import base64
+import json
+import threading
 
 app = Flask(__name__)
 
@@ -74,51 +79,28 @@ def get_point_traffic():
     return jsonify({'features': [{'geometry': {'coordinates': t['coordinates']}, 'properties': {'speed_limit': t['speed_limit'], 'current_speed': t['current_speed'], 'color': t['color']}} for t in traffic_data]})
 
 
-@app.route('/save_traffic_data', methods=['POST'])
-def save_traffic_data():
-    if not traffic_data_list:
-        return jsonify({'success': False, 'message': 'No traffic data to save.'})
-    timestamp = datetime.now().strftime("%d_%m_%Y_%H-%M")
-    filename = f"his_data/t_data_{timestamp}.csv"
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write('coordinates;color;speed_limit;current_speed\n')
-        for data in traffic_data_list:
-            f.write(f"{data['coordinates']};{data['color']};{data['speed_limit']};{data['current_speed']}\n")
-    traffic_data_list.clear()
-    return jsonify({'success': True, 'filename': filename})
-
 
 @app.route('/get_files_for_date')
 def get_files_for_date():
     selected_date = request.args.get('date')
     if not selected_date:
         return jsonify({'files': []})
-    formatted_date = datetime.strptime(selected_date, '%Y-%m-%d').strftime('%d_%m_%Y')    
+    formatted_date = datetime.strptime(selected_date, '%Y-%m-%d').strftime('%d_%m_%Y')
     date_files = []
-    for filename in os.listdir('his_data'):
-        if formatted_date in filename and filename.endswith('.csv'):
-            date_files.append(filename)
+    url = f'https://api.github.com/repos/{REPO}/contents/his_data'
+    headers = {
+        'Authorization': f'token {GITHUB_TOKEN}'
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        files = response.json()
+        for file in files:
+            if formatted_date in file['name'] and file['name'].endswith('.csv'):
+                date_files.append(file['name'])
+    else:
+        return jsonify({'success': False, 'message': 'Could not fetch files from GitHub.'})
+
     return jsonify({'files': date_files})
-
-
-@app.route('/load_traffic_data')
-def load_traffic_data():
-    file_name = request.args.get('file')
-    if not file_name:
-        return jsonify({'features': []})
-    file_path = os.path.join('his_data', file_name)
-    if not os.path.exists(file_path):
-        return jsonify({'features': []})
-    df = pd.read_csv(file_path, delimiter=";")
-    traffic_data = []
-    for index, row in df.iterrows():
-        traffic_data.append({
-            'coordinates': ast.literal_eval(row["coordinates"]),          
-            'speed_limit': row['speed_limit'],
-            'current_speed': row['current_speed'],
-            'color': row['color']            
-        })
-    return jsonify({'features': [{'geometry': {'coordinates': t['coordinates']}, 'properties': {'speed_limit': t['speed_limit'], 'current_speed': t['current_speed'], 'color': t['color']}} for t in traffic_data]})
 
 
 
@@ -133,18 +115,116 @@ def find_nearby_traffic(coords, radius_km=1):
     return None
 
 
+GITHUB_TOKEN = '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'
+REPO = 'qLessqndr/road_traffic_ticino'
+
+def save_to_github(filename, content):
+    url = f"https://api.github.com/repos/{REPO}/contents/{filename}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    
+    # First, check if the file exists to get its SHA
+    response = requests.get(url, headers=headers)
+    sha = None
+    if response.status_code == 200:
+        file_info = response.json()
+        sha = file_info['sha']
+    
+    data = {
+        "message": "Add/update traffic data",
+        "content": base64.b64encode(content.encode('utf-8')).decode('utf-8'),
+        "branch": "main"
+    }
+    
+    # Include SHA if the file exists
+    if sha:
+        data['sha'] = sha
+
+    response = requests.put(url, headers=headers, data=json.dumps(data))
+    if response.status_code not in [200, 201]:
+        print("Failed to save to GitHub:", response.status_code, response.json())
+    return response.status_code in [201, 200]
+
+
+
+@app.route('/save_traffic_data', methods=['POST'])
+def save_traffic_data():
+    if len(traffic_data_list) == 0:
+        return jsonify({'success': False, 'message': 'No traffic data to save.'})
+    timestamp = datetime.now().strftime("%d_%m_%Y_%H-%M")
+    filename = f"his_data/t_data_{timestamp}.csv"   
+
+    content = 'coordinates;color;speed_limit;current_speed\n'
+    for data in traffic_data_list:
+        content += f"{data['coordinates']};{data['color']};{data['speed_limit']};{data['current_speed']}\n"
+    
+    success = save_to_github(filename, content)
+
+    if success:
+        traffic_data_list.clear()
+        return jsonify({'success': True, 'filename': filename})
+    else:
+        return jsonify({'success': False, 'message': 'Failed to save to GitHub.'})
+
+
+@app.route('/load_traffic_data', methods=['GET'])
+def load_traffic_data():
+    file_name = request.args.get('file')
+    if not file_name:
+        return jsonify({'features': []})
+
+    url = f"https://api.github.com/repos/{REPO}/contents/his_data/{file_name}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3.raw"
+    }
+    
+    response = requests.get(url, headers=headers)
+    print(response)
+    if response.status_code == 200:
+        content = response.text
+        df = pd.read_csv(io.StringIO(content), delimiter=";")
+        traffic_data = []
+        
+        for index, row in df.iterrows():
+            traffic_data.append({
+                'coordinates': ast.literal_eval(row["coordinates"]),          
+                'speed_limit': row['speed_limit'],
+                'current_speed': row['current_speed'],
+                'color': row['color']            
+            })        
+        return jsonify({'features': [{'geometry': {'coordinates': t['coordinates']}, 'properties': {'speed_limit': t['speed_limit'], 'current_speed': t['current_speed'], 'color': t['color']}} for t in traffic_data]})
+    else:
+        return jsonify({'features': [], 'message': 'File not found on GitHub.'})
+
+
 @app.route('/update_traffic_data', methods=['POST'])
 def update_traffic_data():
     file_name = 'default_routes.csv'
     file_path = os.path.join('his_data', file_name)
-    df = pd.read_csv(file_path, delimiter=";")    
+    
+    url = f"https://api.github.com/repos/{REPO}/contents/his_data/{file_name}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3.raw"
+    }
+    
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        return jsonify({'success': False, 'message': 'Failed to retrieve default routes.'})
+
+    df = pd.read_csv(io.StringIO(response.text), delimiter=";")
     traffic_data = []
     traffic_data_list = []
+
     for index, row in df.iterrows():
         coords = ast.literal_eval(row["coordinates"])
         fp = coords[0]
-        first_point = (fp[1],fp[0])
+        first_point = (fp[1], fp[0])
         cached_data = find_nearby_traffic(first_point)
+        
         if cached_data:
             cur_speed = cached_data['current_speed']
             color = get_color_by_congestion(cur_speed, int(row["speed_limit"]))
@@ -157,28 +237,60 @@ def update_traffic_data():
             else:
                 cur_speed = 50
                 color = 'grey'
+            
             traffic_cache.append({
                 'coordinates': coords,
                 'speed_limit': row['speed_limit'],
                 'current_speed': cur_speed,
                 'color': color
             })
+        
         traffic_data.append({
-            'coordinates': coords,          
+            'coordinates': coords,
             'speed_limit': row['speed_limit'],
             'current_speed': cur_speed,
-            'color': color       
+            'color': color
         })
+
     timestamp = datetime.now().strftime("%d_%m_%Y_%H-%M")
     filename = f"his_data/t_data_{timestamp}.csv"
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write('coordinates;color;speed_limit;current_speed\n')
-        for data in traffic_data:
-            f.write(f"{data['coordinates']};{data['color']};{data['speed_limit']};{data['current_speed']}\n")
-    traffic_data_list.clear()
-    return jsonify({'success': True, 'filename': filename})
+    content = 'coordinates;color;speed_limit;current_speed\n'
+    for data in traffic_data:
+        content += f"{data['coordinates']};{data['color']};{data['speed_limit']};{data['current_speed']}\n"
+
+    success = save_to_github(filename, content)
+    
+    if success:
+        traffic_data_list.clear()
+        return jsonify({'success': True, 'filename': filename})
+    else:
+        return jsonify({'success': False, 'message': 'Failed to save to GitHub.'})
+
+def schedule_task():
+    now = datetime.now()    
+    scheduled_times = [
+        (8, 0),
+        (9, 0),
+        (10, 0),
+        (12, 0),
+        (14, 0),
+        (15, 0),
+        (16, 0),
+        (18, 0),
+        (20, 0),
+        (22, 0),
+        (0, 0)
+    ]    
+    for hour, minute in scheduled_times:
+        scheduled_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        if scheduled_time < now:
+            scheduled_time += timedelta(days=1)        
+        delay = (scheduled_time - now).total_seconds()
+        threading.Timer(delay, update_traffic_data).start()
+
 
 
 if __name__ == '__main__':
     webbrowser.open("http://127.0.0.1:5000/")
+    schedule_task()
     app.run(host='0.0.0.0', port=5000, debug=True)
