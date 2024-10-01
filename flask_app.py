@@ -9,6 +9,7 @@ from datetime import datetime
 import os
 import ast
 from geopy.distance import geodesic
+import webbrowser
 
 app = Flask(__name__)
 
@@ -179,4 +180,5 @@ def update_traffic_data():
 
 
 if __name__ == '__main__':
+    webbrowser.open("http://127.0.0.1:5000/")
     app.run(debug=True)
