@@ -6,3 +6,4 @@ geopandas
 requests
 shapely
 numpy
+plotly
