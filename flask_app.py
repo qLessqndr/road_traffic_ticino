@@ -10,11 +10,7 @@ import os
 import ast
 from geopy.distance import geodesic
 import webbrowser
-import requests
-import io
-import base64
-import json
-import threading
+import time, threading, json, base64, io, requests
 
 app = Flask(__name__)
 
@@ -284,16 +280,30 @@ def schedule_task():
         (22, 0),
         (0, 0)
     ]    
+
+    scheduled_datetimes = []
+    now = datetime.now()
     for hour, minute in scheduled_times:
         scheduled_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
         if scheduled_time < now:
-            scheduled_time += timedelta(days=1)        
-        delay = (scheduled_time - now).total_seconds()
-        threading.Timer(delay, update_traffic_data).start()
+            scheduled_time += timedelta(days=1)
+        scheduled_datetimes.append(scheduled_time)
+
+    while True:
+        now = datetime.now()
+        print(now)
+        for scheduled_time in scheduled_datetimes:
+            if now.hour == scheduled_time.hour and now.minute == scheduled_time.minute:
+                update_traffic_data()
+                time.sleep(60) 
+                break
+        time.sleep(10)
 
 
 
 if __name__ == '__main__':
     webbrowser.open("http://127.0.0.1:5000/")
-    schedule_task()
+    scheduling_thread = threading.Thread(target=schedule_task)
+    scheduling_thread.daemon = True
+    scheduling_thread.start()
     app.run(host='0.0.0.0', port=5000, debug=True)
