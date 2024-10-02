@@ -57,7 +57,7 @@ def get_color_by_congestion(current_speed, speed_limit):
         speed_limit = 50
     if current_speed is None:
         return 'gray'
-    congestion_level = current_speed / speed_limit if speed_limit else 0
+    congestion_level = current_speed / speed_limit if current_speed else 0
     if congestion_level >= 0.8:
         return 'green'
     elif congestion_level >= 0.5:
@@ -107,7 +107,7 @@ def get_files_for_date():
 
 
 traffic_cache = []
-def find_nearby_traffic(coords, radius_km=1):
+def find_nearby_traffic(coords, radius_km=0.4):
     for cached_data in traffic_cache:
         cc = cached_data['coordinates'][0]
         cached_coords = (cc[1], cc[0])
@@ -186,7 +186,6 @@ def load_traffic_data():
     }
     
     response = requests.get(url, headers=headers)
-    print(response)
     if response.status_code == 200:
         content = response.text
         df = pd.read_csv(io.StringIO(content), delimiter=";")

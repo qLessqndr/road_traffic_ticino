@@ -82,7 +82,7 @@ def get_speed_limits(lat, lon, size):
 
         for way in ways['elements']:
             wayType = way['tags']['highway']
-            if way['type'] == 'way' and (wayType == "primary" or wayType == "trunk" or wayType == "motorway" or wayType == "secondary"):
+            if way['type'] == 'way' and (wayType == "primary" or wayType == "trunk" or wayType == "motorway" or wayType == "secondary" or wayType == "tertiary"):
                 coordinates = convert_node_to_coords(way, node_coordinates)
                 feature = {
                     "type": "Feature",
