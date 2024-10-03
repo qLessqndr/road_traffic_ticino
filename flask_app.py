@@ -193,7 +193,7 @@ def load_traffic_data():
 
 @app.route('/update_traffic_data', methods=['POST'])
 def update_traffic_data():
-    save_crash_data()
+    save_crash_data(crashes.get_crash_data())
     file_name = 'default_routes.csv'
     file_path = os.path.join('his_data', file_name)
     
