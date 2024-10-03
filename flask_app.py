@@ -149,7 +149,7 @@ def save_to_github(filename, content):
 def save_traffic_data():
     if len(traffic_data_list) == 0:
         return jsonify({'success': False, 'message': 'No traffic data to save.'})
-    timestamp = datetime.now().strftime("%d_%m_%Y_%H-%M")
+    timestamp = (datetime.now() + timedelta(hours=2)).strftime("%d_%m_%Y_%H-%M")
     filename = f"his_data/t_data_{timestamp}.csv"   
 
     content = 'coordinates;color;speed_limit;current_speed\n'
@@ -248,7 +248,7 @@ def update_traffic_data():
             'color': color
         })
 
-    timestamp = datetime.now().strftime("%d_%m_%Y_%H-%M")
+    timestamp = (datetime.now() + timedelta(hours=2)).strftime("%d_%m_%Y_%H-%M")
     filename = f"his_data/t_data_{timestamp}.csv"
     content = 'coordinates;color;speed_limit;current_speed\n'
     for data in traffic_data:
@@ -276,7 +276,7 @@ def listify_crash_json(js):
 
 def save_crash_data(data):
     data_list = listify_crash_json(data)
-    timestamp = datetime.now().strftime("%d_%m_%Y")
+    timestamp = (datetime.now() + timedelta(hours=2)).strftime("%d_%m_%Y")
     filename = f"crash_data/c_data_{timestamp}.csv"
     existing_file = load_crashes(filename, True)
     for d in data_list:
