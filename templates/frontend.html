@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=0.8">
+		<title>tiTRAFFIC</title>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+		<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+		<style>
+			* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			}
+			html,
+			body {
+			font-family: 'Poppins', sans-serif;
+			background-color: transparent;
+			position: relative;
+			}
+			body::before {
+			content: '';
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: url('https://www.swissinfo.ch/content/wp-content/uploads/sites/13/2024/05/trafficjam.jpg?crop=0px,0px,1300px,867px&w=880&ver=1e334e43') no-repeat center center fixed;
+			background-size: cover;
+			filter: blur(10px);
+			z-index: -10;
+			}
+			h3 {
+			color: rgb(238, 238, 238);
+			text-align: center;
+			margin: 0;
+			padding: 0;
+			font-size: 1.2em;
+			}
+			.title-box {
+			background: rgba(255, 255, 255, 0);
+			padding: 10px;
+			border-radius: 10px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+			width: 99%;
+			z-index: 1;
+			grid-column: span 2;
+			}
+			.title {
+			font-size: clamp(1rem, 2vw + 1rem, 3rem);
+			text-align: left;
+			margin: 0;
+			padding: 0;
+			font-weight: 700;
+			color: rgb(255, 255, 255);
+			text-shadow: 
+			2px 2px 4px rgba(0, 0, 0, 0.5),
+			0 0 25px rgba(255, 255, 255, 0.5);
+			}
+			.box {
+			margin: 0 auto;
+			width: 80%;
+			height: 750px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+			border-radius: 8px;
+			overflow: hidden;
+			background-color: rgba(255, 255, 255, 0);
+			display: flex;
+			}
+			#map {
+			width: 85%;
+			height: 100%;
+			z-index: 8;
+			}
+			.sidebar {
+			width: 15%;
+			padding: 20px;
+			background-color: #ffffff00;
+			box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+			backdrop-filter: blur(25px);
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			}
+			.file-list,
+			#loadFileName,
+			button,
+			label,
+			input[type="date"] {
+			display: block;
+			margin-bottom: 15px;
+			width: 100%;
+			font-size: 1em;
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			}
+			button {
+			background-color: #27292b;
+			color: white;
+			border: none;
+			padding: 10px;
+			font-size: 1em;
+			border-radius: 4px;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+			}
+			.btn-primary {
+			background-color: #292b2e;
+			color: rgb(255, 255, 255);
+			}
+			.btn-primary:hover {
+			background-color: #74777a;
+			}
+			.btn-secondary {
+			background-color: #4d2457;
+			color: white;
+			}
+			.btn-secondary:hover {
+			background-color: #6f6bac;
+			}
+			.button-container {
+			display: flex;
+			flex-direction: column;
+			}
+			#resetMap,
+			#saveData,
+			#updateTrafficData {
+			margin-bottom: 10px;
+			}
+			.box2 {
+			margin: 0 auto;
+			width: 80%;
+			height: auto;
+			padding: 20px;
+			margin-top: 20px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+			border-radius: 8px;
+			backdrop-filter: blur(25px);
+			background-color: rgba(255, 255, 255, 0.6);
+			}
+			.historical-data {
+			margin-bottom: 20px;
+			padding: 15px;
+			background-color: #f8f9fa;
+			border-radius: 5px;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			}
+			.historical-data h4 {
+			font-size: 1.2em;
+			margin-bottom: 10px;
+			}
+			.historical-data label {
+			margin-top: 15px;
+			}
+			.historical-data h3 {
+			font-size: 1.2em;
+			margin-bottom: 30px;
+			}
+			.loading-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(0, 0, 0, 0.5);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 20;
+			display: none; /* Hidden by default */
+			}
+			.loading-text {
+			color: white;
+			font-size: 1.5em;
+			z-index: 21;
+			}
+			.top-background {
+			position: absolute;
+			width: 100%;
+			height: 600px; /* Set height as needed */
+			background: linear-gradient(to bottom, rgb(64, 85, 116), rgba(255, 255, 255, 0)); /* Gradient background */
+			color: white; /* Text color */
+			display: flex;
+			align-items: center; /* Center content vertically */
+			justify-content: center; /* Center content horizontally */
+			text-align: center; /* Center text */
+			z-index: -5;
+			}
+			.grid-container {
+			padding-top: 50px;
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			grid-template-rows: repeat(3, auto);
+			grid-gap: 20px;
+			width: 80%;
+			height: auto;
+			margin: 0 auto;
+			padding-bottom: 50px;
+			}
+			.box-clickable {
+			position: relative;
+			padding: 20px;
+			background-color: rgba(255, 255, 255, 0.6);
+			backdrop-filter: blur(15px);
+			border-radius: 10px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+			cursor: pointer;
+			transition: transform 0.3s ease, box-shadow 0.3s ease;
+			height: 300px;
+			}
+			#graphs1 {
+			grid-column: span 2;
+			height: 100px;
+			margin-bottom: -20;
+			}
+			#graphs2 {
+			margin-top: 0;
+			height: 200px;
+			grid-column: span 2;
+			}
+			.box-clickable:hover {
+			transform: scale(1.01);
+			box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+			}
+			.box-map {
+			background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Switzerland_adm_location_map.svg/1347px-Switzerland_adm_location_map.svg.png') no-repeat center center;
+			background-size: cover;
+			height: 300px;
+			}
+			.title-image {
+			background: url('https://seeklogo.com/images/C/coat-of-arms-of-switzerland-logo-34302B494F-seeklogo.com.png') no-repeat center center;
+			background-size: contain;
+			border-radius: 10px;
+			height: 0;
+			padding: 7%;
+			max-height: 200px;
+			}
+			#logo {
+				background: url("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/logo.png") no-repeat center;
+				background-size: contain;
+
+			}
+			.graph-placeholder {
+			font-size: 1.2em;
+			color: #333;
+			text-align: center;
+			margin: auto;
+			}
+			.popup {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background-color: rgba(0, 0, 0, 0.8);
+			backdrop-filter: blur(25px);
+			display: none;
+			z-index: 18;
+			padding: 50px;
+			overflow-y: auto;
+			}
+			.popup-content {
+			background-color: #fff;
+			border-radius: 10px;
+			padding: 20px;
+			width: 90%;
+			height: 90%;
+			margin: 0 auto;
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			}
+			.popup-close {
+			position: absolute;
+			top: 20px;
+			right: 20px;
+			cursor: pointer;
+			font-size: 1.5em;
+			color: #333;
+			}
+			#closeMap {
+			margin-top: 50px;
+			}
+			#separator {
+			grid-column: span 2;
+			}
+			#title-text-grid {
+			flex-direction: column;
+			grid-template-columns: 1fr;
+			justify-content: flex-start;
+			align-items: flex-start;
+			}
+			#title-container {
+			margin-top: 50px;
+			box-shadow: none;
+			}
+			#subtitle {
+			font-size: clamp(0.5rem, 1vw + 0.5rem, 1.5rem);
+			}
+			#top-items {
+			height: auto;
+			width: 100%;
+			background-color: rgba(57, 94, 142, 0.95);
+			border-radius: 0px;
+			}
+			#title-style {
+			font-size: clamp(2.5rem, 3vw + 3.5rem, 2.5rem);
+			display: flex; /* Enable Flexbox */
+			justify-content: center; /* Center horizontally */
+			align-items: center; /* Center vertically */
+			background: linear-gradient(45deg, #0310ce 50%, #e70000 50%); /* Gradient for Canton Ticino colors */
+			border-radius: 10px; /* Optional: Rounded corners */
+			padding: 5px; /* Add padding for spacing */
+			}
+			#title-grid {
+			margin-top: 0;
+			margin-bottom: 0;
+			padding-top: 0;
+			padding-bottom: 0;
+			width:95%;
+			justify-content: space-between;
+			display: flex;
+			grid-template-columns: repeat(3, 1fr);
+			grid-template-rows: repeat(3, auto);
+			}
+			.top-bar {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 60px;
+			background-color: rgba(0, 0, 0, 0.8);
+			color: white;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 0 20px;
+			z-index: 1000;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			}
+			.top-bar h1 {
+			font-size: 1.5rem;
+			margin: 0;
+			}
+			.top-bar nav ul {
+			list-style: none;
+			display: flex;
+			gap: 20px;
+			}
+			.top-bar nav ul li a {
+			color: white;
+			text-decoration: none;
+			font-size: 1rem;
+			transition: color 0.3s;
+			}
+			.top-bar nav ul li a:hover {
+			color: #ddd;
+			}
+			#graph1Container {
+				z-index: 30;
+			}
+			#descriptionContainer {
+				background-color: rgb(0,0,0,0);
+				box-shadow: none;
+				grid-column: span 2;
+				height: 10vw;
+				width: 100%;
+			}
+			@media (max-width: 768px) {
+			.title-box {
+			width: 100%;
+			}
+			.title {
+			font-size: 1.2em;
+			}
+			.box {
+			flex-direction: column;
+			height: auto;
+			}
+			#map {
+			width: 100%;
+			height: 400px;
+			}
+			.sidebar {
+			width: 100%;
+			padding: 10px;
+			}
+			button, input[type="date"], select {
+			padding: 10px;
+			font-size: 1em;
+			}
+			.box2 {
+			width: 100%;
+			padding: 15px;
+			margin-top: 20px;
+			}
+			.box2 h4, .box2 p {
+			font-size: 1.1em;
+			}
+			.title-image {
+			padding: 15%;
+			}
+			.grid-container {
+			grid-gap: 10px;
+			}
+			#swiss-logo {
+				display: none;
+				background-color: rgb(0,0,0,0);
+			}
+			}
+			@media (max-width: 480px) {
+			.title-box {
+			padding: 5px;
+			}
+			.title {
+			font-size: 1em;
+			}
+			#map {
+			height: 300px;
+			}
+			.sidebar {
+			padding: 5px;
+			}
+			button, input[type="date"], select {
+			padding: 8px;
+			font-size: 0.9em;
+			}
+			.box2 {
+			padding: 10px;
+			}
+			.box2 h4, .box2 p {
+			font-size: 1em;
+			}
+			.historical-data h4, .historical-data label {
+			font-size: 0.9em;
+			}
+			.title-image {
+			padding: 20%;
+			}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="top-background"></div>
+		<div class="top-bar">
+			<h1>tiTraffic</h1>
+			<nav>
+				<ul>
+					<li><a href="frontend.html">Home</a></li>
+					<li><a href="data.html">Data</a></li>
+					<li><a href="#section2">Graphs</a></li>
+					<li><a href="about.html">About us</a></li>
+				</ul>
+			</nav>
+		</div>
+		<div class="box" id="top-items">
+			<div class="grid-container">
+				<div class="title-box" id="title-container">
+					<div class="grid-container" id="title-grid">
+						<div>
+							<h3 class="title" id="title-style">tiTRAFFIC</h3>
+							<h3 class="title" id="title-text">Traffic in Ticino</h3>
+							<h3 class="title" id="subtitle">Made by Humans<br><br></h3>
+						</div>
+						<div class="title-image" id="logo"></div>
+					</div>
+				</div>
+				<div class="title-box" id="separator"></div>
+				<div class="box-clickable" id="graphs1">
+					<div class="graph-placeholder">
+						<p>Grafico 1</p>
+					</div>
+				</div>
+				<div class="box" id="descriptionContainer">
+					<p>Description</p>
+				</div>
+				<div class="box-clickable" id="graphs2">
+					<div class="graph-placeholder">
+						<p>Grafico 2</p>
+					</div>
+				</div>
+				<div class="box-map box-clickable" id="mapButton">
+				</div>
+				<div class="box-clickable" id="graphs3">
+					<div class="graph-placeholder">
+						<p>Grafico 3</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="popup" id="mapPopup">
+			<div class="box">
+				<div id="map"></div>
+				<div class="sidebar">
+					<div class="historical-data">
+						<h4>Historical</h4>
+						<label for="dateInput">Choose date:</label>
+						<input type="date" id="dateInput">
+						<label for="loadFileName">Choose time:</label>
+						<select id="loadFileName"></select>
+						<button class="btn-primary" id="loadData">LOAD</button>
+						<button class="btn-secondary" id="resetMap">RESET</button>
+						<button class="btn-secondary" id="getCrashes">GET CRASHES</button>
+					</div>
+					<div class="button-container">
+						<button class="btn-primary" id="saveData">SAVE</button>
+						<button class="btn-secondary" id="updateTrafficData">GATHER DATA</button>
+						<button class="btn-primary" id="closeMap">CLOSE</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="popup" id="graphPopup1">
+			<div class="box" id="graph1Container">
+			</div>
+		</div>
+
+		<div class="popup" id="graphPopup2">
+		</div>
+
+		<div class="popup" id="graphPopup3">
+		</div>
+
+		<div class="loading-overlay">
+			<div class="loading-text">Loading...</div>
+		</div>
+		<div class="box2">
+			<h4>Analysis</h4>
+			<p>Qui mettiamo i grafici e altre informazioni</p>
+			<p>   ;_;   </p>
+		</div>
+		<script>
+			function openPopup(popupId) {
+			    document.getElementById(popupId).style.display = 'block';
+			}
+			
+			function closePopup(popupId) {
+			    document.getElementById(popupId).style.display = 'none';
+			}
+
+			function openPage(page) {
+				window.location.href = page + '.html';
+			}
+			
+			document.getElementById('graphs1').addEventListener('click', function () {
+			    openPopup('graphPopup1');
+			});
+			
+			document.getElementById('graphs2').addEventListener('click', function () {
+			    openPopup('graphPopup2');
+			});
+			
+			document.getElementById('graphs3').addEventListener('click', function () {
+			    openPopup('graphPopup3');
+			});
+
+			document.getElementById('mapButton').addEventListener('click', function () {
+			    openPage('map');		
+			});
+		</script>
+	</body>
+</html>
