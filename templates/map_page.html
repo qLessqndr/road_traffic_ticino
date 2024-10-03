@@ -481,8 +481,8 @@
 						<input type="date" id="dateInput">
 						<label for="loadFileName">Choose time:</label>
 						<select id="loadFileName"></select>
-						<button class="btn-primary" id="loadData">LOAD</button>
-						<button class="btn-secondary" id="resetMap">RESET</button>
+						<button class="btn-primary" id="loadData">LOAD</button>						
+						<button onclick="changeStyle()" id="toggleStyle">NIGHT STYLE</button>
 						<button class="btn-secondary" id="getCrashes">GET CRASHES</button>
 					</div>
 					<div class="button-container">
@@ -505,11 +505,6 @@
 		</div>
 		<script>
                 var map;
-                map = L.map('map').setView([46.1512, 8.7366], 10);
-			             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-			                maxZoom: 19,
-			                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-			            }).addTo(map);	
 
                 function displayCrashData(incidents) {
                     incidents.forEach(incident => {
@@ -558,6 +553,27 @@
                         });
                 });
 
+				let currentStyle = 'main';
+
+                map = L.map('map').setView([46.1512, 8.7366], 10);
+				function addTileLayer() {
+					const url = `https://api.tomtom.com/map/1/tile/basic/${currentStyle}/{z}/{x}/{y}.png?key=5QD1LbzXsN3WePtgSPoOjcNwIEAa7qWb`;
+					return L.tileLayer(url, {
+						attribution: '&copy; <a href="https://www.tomtom.com/en_gb/maps/">TomTom</a>',
+						maxZoom: 21,
+						minZoom: 1,
+					}).addTo(map);
+				}
+
+				let tomtomLayer = addTileLayer();
+
+				function changeStyle() {
+					currentStyle = (currentStyle === 'main') ? 'night' : 'main';
+					document.getElementById('toggleStyle').innerText = (currentStyle === 'main') ? 'NIGHT STYLE' : 'DAY STYLE';
+					map.removeLayer(tomtomLayer);
+					tomtomLayer = addTileLayer();
+				}
+
                 var markers = [];
                 var lines = [];
                 var trafficData = [];
@@ -579,11 +595,7 @@
                     markers.forEach(marker => map.removeLayer(marker));
                     markers = [];
                 }
-
-                document.getElementById('resetMap').addEventListener('click', function() {
-                    resetMapElements();
-                });
-
+				
                 function displayTrafficData(data) {
                     if (!data.features || data.features.length === 0) return;
 
