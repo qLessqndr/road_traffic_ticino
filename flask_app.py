@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, jsonify
+from flask import Flask, render_template_string, request, jsonify, render_template
 import folium
 import traffic
 import get_speedbox
@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 traffic_data_list = []
 
-with open("frontend.html", "r", encoding="utf-8") as f:
+with open("templates/frontend.html", "r", encoding="utf-8") as f:
     html_template = f.read()
 
 size = 1
@@ -297,6 +297,22 @@ def save_crash_data(data):
     for d in existing_file:
         content += f"{d['coordinates']};{d['description']};{d['startTime']};{d['endTime']}\n"
     save_to_github(filename, content)
+
+@app.route('/frontend.html')
+def frontend():
+    return render_template('frontend.html')
+
+@app.route('/about.html')
+def about():
+    return render_template('about.html')
+
+@app.route('/map.html')
+def map():
+    return render_template('map_page.html')
+    
+@app.route('/data.html')
+def data():
+    return render_template('data.html')
 
 
 def load_crashes(file_name, return_dict=False):
