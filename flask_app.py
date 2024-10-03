@@ -265,45 +265,7 @@ def update_traffic_data():
     else:
         return jsonify({'success': False, 'message': 'Failed to save to GitHub.'})
 
-def schedule_task():
-    now = datetime.now()    
-    scheduled_times = [
-        (8, 0),
-        (9, 0),
-        (10, 0),
-        (12, 0),
-        (14, 0),
-        (15, 0),
-        (16, 0),
-        (18, 0),
-        (20, 0),
-        (22, 0),
-        (0, 0)
-    ]    
-
-    scheduled_datetimes = []
-    now = datetime.now()
-    for hour, minute in scheduled_times:
-        scheduled_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-        if scheduled_time < now:
-            scheduled_time += timedelta(days=1)
-        scheduled_datetimes.append(scheduled_time)
-
-    while True:
-        now = datetime.now()
-        print(now)
-        for scheduled_time in scheduled_datetimes:
-            if now.hour == scheduled_time.hour and now.minute == scheduled_time.minute:
-                update_traffic_data()
-                time.sleep(60) 
-                break
-        time.sleep(10)
-
-
 
 if __name__ == '__main__':
     webbrowser.open("http://127.0.0.1:5000/")
-    scheduling_thread = threading.Thread(target=schedule_task)
-    scheduling_thread.daemon = True
-    scheduling_thread.start()
     app.run(host='0.0.0.0', port=5000, debug=True)
