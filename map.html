@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -60,7 +61,7 @@
 			}
 			.box {
 			margin: 0 auto;
-			width: 80%;
+			width: 90%;
 			height: 750px;
 			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 			border-radius: 8px;
@@ -191,10 +192,10 @@
 			.grid-container {
 			padding-top: 50px;
 			display: grid;
-			grid-template-columns: repeat(2, 1fr);
-			grid-template-rows: repeat(3, auto);
+			grid-template-columns: 1fr;
+			grid-template-rows: auto;
 			grid-gap: 20px;
-			width: 80%;
+			width: 100%;
 			height: auto;
 			margin: 0 auto;
 			padding-bottom: 50px;
@@ -234,7 +235,7 @@
 			background-size: contain;
 			border-radius: 10px;
 			height: 0;
-			padding: 7%;
+			padding: 5%;
 			max-height: 200px;
 			}
 			#logo {
@@ -285,6 +286,7 @@
 			}
 			#separator {
 			grid-column: span 2;
+            margin-bottom: 20px;
 			}
 			#title-text-grid {
 			flex-direction: column;
@@ -293,7 +295,7 @@
 			align-items: flex-start;
 			}
 			#title-container {
-			margin-top: 50px;
+			margin-top: 10px;
 			box-shadow: none;
 			}
 			#subtitle {
@@ -314,17 +316,19 @@
 			border-radius: 10px; /* Optional: Rounded corners */
 			padding: 5px; /* Add padding for spacing */
 			}
+
 			#title-grid {
 			margin-top: 0;
 			margin-bottom: 0;
 			padding-top: 0;
 			padding-bottom: 0;
-			width:95%;
+			width: 90%;
 			justify-content: space-between;
 			display: flex;
 			grid-template-columns: repeat(3, 1fr);
 			grid-template-rows: repeat(3, auto);
 			}
+
 			.top-bar {
 			position: fixed;
 			top: 0;
@@ -400,7 +404,7 @@
 			font-size: 1.1em;
 			}
 			.title-image {
-			padding: 15%;
+			padding: 10%;
 			}
 			.grid-container {
 			grid-gap: 10px;
@@ -437,7 +441,7 @@
 			font-size: 0.9em;
 			}
 			.title-image {
-			padding: 20%;
+			padding: 15%;
 			}
 			}
 		</style>
@@ -445,7 +449,7 @@
 	<body>
 		<div class="top-background"></div>
 		<div class="top-bar">
-			<h1>tiTraffic</h1>
+			<h1 id="title-style">tiTraffic</h1>
 			<nav>
 				<ul>
 					<li><a href="frontend.html">Home</a></li>
@@ -455,43 +459,19 @@
 				</ul>
 			</nav>
 		</div>
-		<div class="box" id="top-items">
+		    <div class="box" id="top-items">
 			<div class="grid-container">
 				<div class="title-box" id="title-container">
 					<div class="grid-container" id="title-grid">
 						<div>
-							<h3 class="title" id="title-style">tiTRAFFIC</h3>
-							<h3 class="title" id="title-text">Traffic in Ticino</h3>
+							<h3 class="title" id="title-text">Map</h3>
 							<h3 class="title" id="subtitle">Made by Humans<br><br></h3>
 						</div>
 						<div class="title-image" id="logo"></div>
 					</div>
-				</div>
 				<div class="title-box" id="separator"></div>
-				<div class="box-clickable" id="graphs1">
-					<div class="graph-placeholder">
-						<p>Grafico 1</p>
-					</div>
-				</div>
-				<div class="box" id="descriptionContainer">
-					<p>Description</p>
-				</div>
-				<div class="box-clickable" id="graphs2">
-					<div class="graph-placeholder">
-						<p>Grafico 2</p>
-					</div>
-				</div>
-				<div class="box-map box-clickable" id="mapButton">
-				</div>
-				<div class="box-clickable" id="graphs3">
-					<div class="graph-placeholder">
-						<p>Grafico 3</p>
-					</div>
-				</div>
-			</div>
-		</div>
+
 		
-		<div class="popup" id="mapPopup">
 			<div class="box">
 				<div id="map"></div>
 				<div class="sidebar">
@@ -511,56 +491,239 @@
 						<button class="btn-primary" id="closeMap">CLOSE</button>
 					</div>
 				</div>
-			</div>
-		</div>
+			</div></div>
 
-		<div class="popup" id="graphPopup1">
-			<div class="box" id="graph1Container">
-			</div>
-		</div>
-
-		<div class="popup" id="graphPopup2">
-		</div>
-
-		<div class="popup" id="graphPopup3">
-		</div>
-
-		<div class="loading-overlay">
-			<div class="loading-text">Loading...</div>
-		</div>
+            
 		<div class="box2">
 			<h4>Analysis</h4>
 			<p>Qui mettiamo i grafici e altre informazioni</p>
 			<p>   ;_;   </p>
 		</div>
+
+		<div class="loading-overlay">
+			<div class="loading-text">Loading...</div>
+		</div>
 		<script>
-			function openPopup(popupId) {
-			    document.getElementById(popupId).style.display = 'block';
-			}
-			
-			function closePopup(popupId) {
-			    document.getElementById(popupId).style.display = 'none';
-			}
+                var map;
+                map = L.map('map').setView([46.1512, 8.7366], 10);
+			             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+			                maxZoom: 19,
+			                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+			            }).addTo(map);	
 
-			function openPage(page) {
-				window.location.href = page + '.html';
-			}
-			
-			document.getElementById('graphs1').addEventListener('click', function () {
-			    openPopup('graphPopup1');
-			});
-			
-			document.getElementById('graphs2').addEventListener('click', function () {
-			    openPopup('graphPopup2');
-			});
-			
-			document.getElementById('graphs3').addEventListener('click', function () {
-			    openPopup('graphPopup3');
-			});
+                function displayCrashData(incidents) {
+                    incidents.forEach(incident => {
+                        const coordinates = incident.geometry.coordinates[0];
+                        const lat = coordinates[1];
+                        const lon = coordinates[0];
 
-			document.getElementById('mapButton').addEventListener('click', function () {
-			    openPage('map');		
-			});
-		</script>
-	</body>
+                        const incidentIcon = L.icon({
+                            iconUrl: "https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/incident.png",
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 32],
+                            popupAnchor: [0, -32]
+                        });
+
+                        const description = incident.properties.events[0].description || 'Unknown Incident';
+                        const startTime = incident.properties.startTime;
+                        const dateObj = new Date(startTime);
+                        const hours = String(dateObj.getUTCHours()).padStart(2, '0');
+                        const minutes = String(dateObj.getUTCMinutes()).padStart(2, '0');
+                        const formattedTime = `${hours}:${minutes}`;
+
+                        const popupContent = `${description}<br>${formattedTime}`;
+
+                        L.marker([lat, lon], { icon: incidentIcon}).addTo(map)
+
+                            .bindPopup(popupContent)
+                            .openPopup();
+                    });
+                }
+
+                document.getElementById('getCrashes').addEventListener('click', function() {
+                    fetch('/get_crash_data')
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.incidents && data.incidents.length > 0) {
+                                displayCrashData(data.incidents);
+                            } else {
+                                console.log('No incidents found');
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error loading crash data:", error);
+                        });
+                });
+
+                var markers = [];
+                var lines = [];
+                var trafficData = [];
+
+                let loadingOverlay = document.querySelector('.loading-overlay');
+
+                function showLoadingOverlay() {
+                    loadingOverlay.style.display = 'flex';
+                }
+
+                function hideLoadingOverlay() {
+                    loadingOverlay.style.display = 'none';
+                }
+
+                function resetMapElements() {
+                    lines.forEach(line => map.removeLayer(line));
+                    lines = [];
+                    trafficData = [];
+                    markers.forEach(marker => map.removeLayer(marker));
+                    markers = [];
+                }
+
+                document.getElementById('resetMap').addEventListener('click', function() {
+                    resetMapElements();
+                });
+
+                function displayTrafficData(data) {
+                    if (!data.features || data.features.length === 0) return;
+
+                    data.features.forEach(function(item) {
+                        if (item.geometry && item.geometry.coordinates) {
+                            var lineCoordinates = item.geometry.coordinates.map(function(coord) {
+                                return [coord[1], coord[0]];
+                            });
+
+                            var line = L.polyline(lineCoordinates, {
+                                color: item.properties.color || 'gray',
+                                weight: 5
+                            }).addTo(map);
+
+                            lines.push(line);
+
+                            var speedLimit = item.properties.speed_limit || 'N/A';
+                            var currentSpeed = item.properties.current_speed || 'N/A';
+                            line.bindTooltip("Speed Limit: " + speedLimit + " km/h<br>Current Speed: " + currentSpeed + " km/h", {
+                                permanent: false, direction: 'auto'
+                            });
+
+                            trafficData.push({
+                                coordinates: lineCoordinates,
+                                color: item.properties.color,
+                                speed_limit: speedLimit,
+                                current_speed: currentSpeed
+                            });
+                        }
+                    });
+                }
+
+                document.getElementById('dateInput').addEventListener('change', function() {
+                    var selectedDate = document.getElementById('dateInput').value;
+                    if (!selectedDate) return;
+
+                    fetch('/get_files_for_date?date=' + selectedDate)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.json();
+                        })
+                        .then(data => {
+                            var fileList = document.getElementById('loadFileName');
+                            fileList.innerHTML = '';
+                            data.files.forEach(function(file) {
+                                var timePart = file.split('_').pop().replace('.csv', '').replace('-', ':');
+                                var option = document.createElement('option');
+                                option.value = file;
+                                option.textContent = timePart;
+                                fileList.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error("Error loading files:", error);
+                        });
+                });
+
+                document.getElementById('loadData').addEventListener('click', function() {
+                    var selectedFile = document.getElementById('loadFileName').value;
+                    if (!selectedFile) return;
+                    showLoadingOverlay();
+
+                    fetch('/load_traffic_data?file=' + selectedFile)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.json();
+                        })
+                        .then(data => {
+                            resetMapElements();
+                            displayTrafficData(data);
+                        })
+                        .catch(error => {
+                            console.error("Error loading traffic data:", error);
+                        })
+                        .finally(() => {
+                            hideLoadingOverlay();
+                        });
+                });
+
+                document.getElementById('updateTrafficData').addEventListener('click', function() {
+
+                    const password = prompt("Please enter the password to gather data:");
+                    const correctPassword = "orcodio22";
+
+                    if (password === correctPassword) {
+                        showLoadingOverlay();
+                    const updateButton = this;
+                    updateButton.disabled = true;
+                    updateButton.style.display = "none";
+                    fetch('/update_traffic_data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: trafficData })
+                    })
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("Traffic data updated successfully!");
+                        })
+                        .catch(error => {
+                            console.error("Error updating traffic data:", error);
+                        })
+                        .finally(() => {
+                            updateButton.disabled = false;
+                            updateButton.style.display = "block";
+                            hideLoadingOverlay();
+                        });
+                    }
+                });
+
+                document.getElementById('saveData').addEventListener('click', function() {
+                    if (trafficData.length === 0) return;
+                    
+                    const password = prompt("Please enter the password to gather data:");
+                    const correctPassword = "orcodio22";
+
+                    if (password === correctPassword) {
+                        showLoadingOverlay();
+                    fetch('/save_traffic_data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: trafficData })
+                    })
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("Traffic data saved successfully!");
+                        })
+                        .catch(error => {
+                            console.error("Error saving traffic data:", error);
+                        })
+                        .finally(() => {
+                            hideLoadingOverlay();
+                        });
+                    }
+                });
+        </script>
+    </body>
 </html>

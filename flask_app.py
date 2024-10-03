@@ -11,6 +11,7 @@ import ast
 from geopy.distance import geodesic
 import webbrowser
 import time, threading, json, base64, io, requests
+import crashes
 
 app = Flask(__name__)
 
@@ -125,7 +126,6 @@ def save_to_github(filename, content):
         "Accept": "application/vnd.github.v3+json"
     }
     
-    # First, check if the file exists to get its SHA
     response = requests.get(url, headers=headers)
     sha = None
     if response.status_code == 200:
@@ -133,12 +133,11 @@ def save_to_github(filename, content):
         sha = file_info['sha']
     
     data = {
-        "message": "Add/update traffic data",
+        "message": "Backend-Gathered Data",
         "content": base64.b64encode(content.encode('utf-8')).decode('utf-8'),
         "branch": "main"
     }
     
-    # Include SHA if the file exists
     if sha:
         data['sha'] = sha
 
@@ -201,6 +200,7 @@ def load_traffic_data():
 
 @app.route('/update_traffic_data', methods=['POST'])
 def update_traffic_data():
+    save_crash_data()
     file_name = 'default_routes.csv'
     file_path = os.path.join('his_data', file_name)
     
@@ -266,6 +266,72 @@ def update_traffic_data():
         return jsonify({'success': False, 'message': 'Failed to save to GitHub.'})
 
 
+def listify_crash_json(js):
+    data = []
+    for t in js["incidents"]:
+        data.append({
+            'coordinates': t['geometry']['coordinates'][0], 
+            'description': t['properties']['events'][0]['description'],
+            'startTime': t['properties']['startTime'],
+            'endTime': t['properties']['endTime']
+        })
+    return data
+
+def save_crash_data(data):
+    data_list = listify_crash_json(data)
+    timestamp = datetime.now().strftime("%d_%m_%Y")
+    filename = f"crash_data/c_data_{timestamp}.csv"
+    existing_file = load_crashes(filename, True)
+    for d in data_list:
+        found_same = False
+        for e in existing_file:
+            if e['coordinates'] == d['coordinates'] and e['startTime'] == d['startTime']:
+                if e['endTime'] != d['endTime']:
+                    existing_file.remove(e)
+                    break
+                else:
+                    found_same = True
+        if not found_same:
+            existing_file.append(d)
+    content = 'coordinates;description;startTime;endTime\n'
+    for d in existing_file:
+        content += f"{d['coordinates']};{d['description']};{d['startTime']};{d['endTime']}\n"
+    save_to_github(filename, content)
+
+
+def load_crashes(file_name, return_dict=False):
+    url = f"https://api.github.com/repos/{REPO}/contents/{file_name}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3.raw"
+    }    
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        content = response.text
+        df = pd.read_csv(io.StringIO(content), delimiter=";")
+        data = []        
+        for index, row in df.iterrows():
+            data.append({
+                'coordinates': ast.literal_eval(row["coordinates"]),          
+                'description': row['description'],
+                'startTime': row['startTime'],
+                'endTime': row['endTime']            
+            })        
+        if return_dict:
+            return data
+        return jsonify({'incidents': [{'geometry': {'coordinates': t['coordinates']}, 'properties': {'startTime': t['startTime'], 'endTime': t['endTime'], 'events': [{'description': t['description']}]}} for t in traffic_data]})
+    else:
+        if return_dict:
+            return []
+        return jsonify({'incidents': [], 'message': 'File not found on GitHub.'})
+
+
+@app.route('/get_crash_data', methods=['GET'])
+def crash_data():
+    data = crashes.get_crash_data()
+    save_crash_data(data)
+    return jsonify(data)
+
+
 if __name__ == '__main__':
-    webbrowser.open("http://127.0.0.1:5000/")
     app.run(host='0.0.0.0', port=5000, debug=True)
