@@ -19,10 +19,6 @@ traffic_data_list = []
 
 size = 1
 
-@app.route('/')
-def index():
-    return render_template_string(html_template)
-
 
 def get_traffic_data(lat, lon):
     geojson_data = get_speedbox.get_speed_limits(lat, lon, size)
