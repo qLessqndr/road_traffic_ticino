@@ -17,9 +17,6 @@ app = Flask(__name__)
 
 traffic_data_list = []
 
-with open("templates/frontend.html", "r", encoding="utf-8") as f:
-    html_template = f.read()
-
 size = 1
 
 @app.route('/')
@@ -299,6 +296,10 @@ def save_crash_data(data):
     save_to_github(filename, content)
 
 @app.route('/frontend.html')
+def home():
+    return render_template('frontend.html')
+
+@app.route('/')
 def frontend():
     return render_template('frontend.html')
 
