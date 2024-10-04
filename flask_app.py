@@ -46,24 +46,25 @@ def get_traffic_data(lat, lon):
 
 
 def get_color_by_congestion(current_speed, speed_limit):
+    current_speed = int(current_speed)
+    speed_limit = int(speed_limit)
     if speed_limit is None:
         speed_limit = 50
     if current_speed is None or current_speed == 0:
         return 'gray'
     
-    if current_speed >= speed_limit:
-        congestion_level = 1
+    congestion_level = current_speed / speed_limit
+
+    if congestion_level >= 0.8:
+        return 'rgb(44,173,35'
+    elif congestion_level >= 0.6:
+        return 'rgb(255,245,0)'
+    elif congestion_level >= 0.4:
+        return 'rgb(224,122,38)'
+    elif congestion_level >= 0.2:
+        return 'rgb(184,28,28)'
     else:
-        congestion_level = current_speed / speed_limit
-
-    cmap = plt.get_cmap('RdYlGn')
-    normalized_value = min(max(congestion_level, 0), 1)
-    rgb_color = cmap(normalized_value)
-
-    rgb_tuple = tuple(int(c * 255) for c in rgb_color[:3])
-    rgb_str = f'rgb({rgb_tuple[0]}, {rgb_tuple[1]}, {rgb_tuple[2]})'
-    
-    return rgb_str
+        return 'rgb(255,0,0)'
 
 
 @app.route('/get_point_traffic')
@@ -194,7 +195,7 @@ def load_traffic_data():
                 'coordinates': ast.literal_eval(row["coordinates"]),          
                 'speed_limit': row['speed_limit'],
                 'current_speed': row['current_speed'],
-                'color': row['color']            
+                'color': get_color_by_congestion(row['current_speed'], row['speed_limit']) #row['color']            
             })        
         return jsonify({'features': [{'geometry': {'coordinates': t['coordinates']}, 'properties': {'speed_limit': t['speed_limit'], 'current_speed': t['current_speed'], 'color': t['color']}} for t in traffic_data]})
     else:
