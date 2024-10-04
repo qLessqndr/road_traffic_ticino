@@ -12,6 +12,9 @@ from geopy.distance import geodesic
 import webbrowser
 import time, threading, json, base64, io, requests
 import crashes
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+
 
 app = Flask(__name__)
 
@@ -45,15 +48,22 @@ def get_traffic_data(lat, lon):
 def get_color_by_congestion(current_speed, speed_limit):
     if speed_limit is None:
         speed_limit = 50
-    if current_speed is None:
+    if current_speed is None or current_speed == 0:
         return 'gray'
-    congestion_level = current_speed / speed_limit if current_speed else 0
-    if congestion_level >= 0.8:
-        return 'green'
-    elif congestion_level >= 0.5:
-        return 'orange'
+    
+    if current_speed >= speed_limit:
+        congestion_level = 1
     else:
-        return 'red'
+        congestion_level = current_speed / speed_limit
+
+    cmap = plt.get_cmap('RdYlGn')
+    normalized_value = min(max(congestion_level, 0), 1)
+    rgb_color = cmap(normalized_value)
+
+    rgb_tuple = tuple(int(c * 255) for c in rgb_color[:3])
+    rgb_str = f'rgb({rgb_tuple[0]}, {rgb_tuple[1]}, {rgb_tuple[2]})'
+    
+    return rgb_str
 
 
 @app.route('/get_point_traffic')
@@ -97,7 +107,7 @@ def get_files_for_date():
 
 
 traffic_cache = []
-def find_nearby_traffic(coords, radius_km=1):
+def find_nearby_traffic(coords, radius_km=0.7):
     for cached_data in traffic_cache:
         cc = cached_data['coordinates'][0]
         cached_coords = (cc[1], cc[0])
