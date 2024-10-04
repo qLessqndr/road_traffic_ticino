@@ -7,3 +7,4 @@ requests
 shapely
 numpy
 plotly
+matplotlib
