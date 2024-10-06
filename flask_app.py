@@ -108,7 +108,7 @@ def get_files_for_date():
 
 
 traffic_cache = []
-def find_nearby_traffic(coords, radius_km=0.2):
+def find_nearby_traffic(coords, radius_km=0.85):
     for cached_data in traffic_cache:
         cc = cached_data['coordinates'][0]
         cached_coords = (cc[1], cc[0])
@@ -230,11 +230,10 @@ def update_traffic_data():
         
         if cached_data:
             cur_speed = cached_data['current_speed']
-            print(cached_data)
             color = get_color_by_congestion(cur_speed, int(row["speed_limit"]))
         else:
             td = traffic.get_data(first_point)
-            print(td)
+            into += 1
             if td is not None:
                 cur_speed = int(td['current_speed'])
                 color = get_color_by_congestion(cur_speed, int(row["speed_limit"]))
@@ -256,6 +255,7 @@ def update_traffic_data():
             'color': color
         })
 
+    traffic_cache = []
     timestamp = (datetime.now() + timedelta(hours=2)).strftime("%d_%m_%Y_%H-%M")
     filename = f"his_data/t_data_{timestamp}.csv"
     content = 'coordinates;color;speed_limit;current_speed\n'
