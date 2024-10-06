@@ -233,7 +233,6 @@ def update_traffic_data():
             color = get_color_by_congestion(cur_speed, int(row["speed_limit"]))
         else:
             td = traffic.get_data(first_point)
-            into += 1
             if td is not None:
                 cur_speed = int(td['current_speed'])
                 color = get_color_by_congestion(cur_speed, int(row["speed_limit"]))
