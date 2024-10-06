@@ -230,6 +230,7 @@ def update_traffic_data():
         
         if cached_data:
             cur_speed = cached_data['current_speed']
+            print(cached_data)
             color = get_color_by_congestion(cur_speed, int(row["speed_limit"]))
         else:
             td = traffic.get_data(first_point)
