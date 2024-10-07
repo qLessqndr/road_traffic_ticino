@@ -199,7 +199,8 @@ list_of_df = {}
 def load_traffic_data():
     date = request.args.get('date')
     date_obj = datetime.strptime(date, '%Y-%m-%d')    
-    file_name = f"t_data_{date_obj.strftime('%d_%m_%Y')}.csv"
+    date_str = date_obj.strftime('%d_%m_%Y')
+    file_name = f"t_data_{date_str}.csv"
 
     time_of = request.args.get('time')    
 
