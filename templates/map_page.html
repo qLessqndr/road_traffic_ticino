@@ -495,8 +495,9 @@
 						<h4>Historical</h4>
 						<label for="dateInput">Choose date:</label>
 						<input type="date" id="dateInput">
-						<label for="loadFileName">Choose time:</label>
-						<select id="loadFileName"></select>
+						<label for="timeInput">Choose time:</label>
+						<input type="range" id="timeSlider" min="0" max="1439" value="510" step="30">
+                        <span id="selectedTime">08:30</span>
 						<button class="btn-primary" id="loadData">LOAD</button>						
 						<button onclick="changeStyle()" id="toggleStyle">NIGHT STYLE</button>
 						<button class="btn-secondary" id="getCrashes">GET CRASHES</button>
@@ -573,7 +574,7 @@
 
                 map = L.map('map').setView([46.1512, 8.7366], 10);
 				function addTileLayer() {
-					const url = `https://api.tomtom.com/map/1/tile/basic/${currentStyle}/{z}/{x}/{y}.png?key=5QD1LbzXsN3WePtgSPoOjcNwIEAa7qWb`;
+					const url = `https://api.tomtom.com/map/1/tile/basic/${currentStyle}/{z}/{x}/{y}.png?key=uwGBFZTtDZAyJwKERrt4xSiaFcdMhGXp`;
 					return L.tileLayer(url, {
 						attribution: '&copy; <a href="https://www.tomtom.com/en_gb/maps/">TomTom</a>',
 						maxZoom: 21,
@@ -647,49 +648,49 @@
                 document.getElementById('dateInput').addEventListener('change', function() {
                     var selectedDate = document.getElementById('dateInput').value;
                     if (!selectedDate) return;
-
-                    fetch('/get_files_for_date?date=' + selectedDate)
-                        .then(response => {
-                            if (!response.ok) throw new Error('Network response was not ok');
-                            return response.json();
-                        })
-                        .then(data => {
-                            var fileList = document.getElementById('loadFileName');
-                            fileList.innerHTML = '';
-                            data.files.forEach(function(file) {
-                                var timePart = file.split('_').pop().replace('.csv', '').replace('-', ':');
-                                var option = document.createElement('option');
-                                option.value = file;
-                                option.textContent = timePart;
-                                fileList.appendChild(option);
-                            });
-                        })
-                        .catch(error => {
-                            console.error("Error loading files:", error);
-                        });
                 });
 
-                document.getElementById('loadData').addEventListener('click', function() {
-                    var selectedFile = document.getElementById('loadFileName').value;
-                    if (!selectedFile) return;
-                    showLoadingOverlay();
+				function formatTime(minutes) {
+					const hours = String(Math.floor(minutes / 60)).padStart(2, '0');
+					const mins = String(minutes % 60).padStart(2, '0');
+					return `${hours}:${mins}`;
+				}
 
-                    fetch('/load_traffic_data?file=' + selectedFile)
-                        .then(response => {
-                            if (!response.ok) throw new Error('Network response was not ok');
-                            return response.json();
-                        })
-                        .then(data => {
-                            resetMapElements();
-                            displayTrafficData(data);
-                        })
-                        .catch(error => {
-                            console.error("Error loading traffic data:", error);
-                        })
-                        .finally(() => {
-                            hideLoadingOverlay();
-                        });
-                });
+				const timeSlider = document.getElementById('timeSlider');
+				const selectedTimeDisplay = document.getElementById('selectedTime');
+
+				timeSlider.addEventListener('input', function() {
+					const selectedTime = formatTime(this.value);
+					selectedTimeDisplay.textContent = selectedTime;
+					
+					loadTrafficData(selectedTime);
+				});
+
+				function loadTrafficData(selectedTime) {
+					var selectedDate = document.getElementById('dateInput').value;	
+
+					if (!selectedDate || !selectedTime) {
+						alert("Please select both date and time.");
+						return;
+					}
+
+					showLoadingOverlay();
+					fetch(`/load_traffic_data?date=${selectedDate}&time=${selectedTime}`)
+						.then(response => {
+							if (!response.ok) throw new Error('Network response was not ok');
+							return response.json();
+						})
+						.then(data => {
+							resetMapElements();
+							displayTrafficData(data);
+						})
+						.catch(error => {
+							console.error("Error loading traffic data:", error);
+						})
+						.finally(() => {
+							hideLoadingOverlay();
+						});
+				};
 
                 document.getElementById('updateTrafficData').addEventListener('click', function() {
 
