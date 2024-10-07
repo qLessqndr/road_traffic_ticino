@@ -221,6 +221,7 @@ def update_traffic_data():
     df = pd.read_csv(io.StringIO(response.text), delimiter=";")
     traffic_data = []
     traffic_data_list = []
+    traffic_cache = []
 
     for index, row in df.iterrows():
         coords = ast.literal_eval(row["coordinates"])
