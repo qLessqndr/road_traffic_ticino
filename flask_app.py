@@ -108,7 +108,7 @@ def get_files_for_date():
 
 
 traffic_cache = []
-def find_nearby_traffic(coords, radius_km=0.85):
+def find_nearby_traffic(coords, radius_km=1):
     for cached_data in traffic_cache:
         cc = cached_data['coordinates'][0]
         cached_coords = (cc[1], cc[0])
