@@ -107,8 +107,7 @@ def get_files_for_date():
 
 
 
-traffic_cache = []
-def find_nearby_traffic(coords, radius_km=1):
+def find_nearby_traffic(traffic_cache, coords, radius_km=1.4):
     for cached_data in traffic_cache:
         cc = cached_data['coordinates'][0]
         cached_coords = (cc[1], cc[0])
@@ -204,6 +203,8 @@ def load_traffic_data():
 
 @app.route('/update_traffic_data', methods=['POST'])
 def update_traffic_data():
+    total = 0
+
     save_crash_data(crashes.get_crash_data())
     file_name = 'default_routes.csv'
     file_path = os.path.join('his_data', file_name)
@@ -227,12 +228,13 @@ def update_traffic_data():
         coords = ast.literal_eval(row["coordinates"])
         fp = coords[0]
         first_point = (fp[1], fp[0])
-        cached_data = find_nearby_traffic(first_point)
+        cached_data = find_nearby_traffic(traffic_cache, first_point)
         
         if cached_data:
             cur_speed = cached_data['current_speed']
             color = get_color_by_congestion(cur_speed, int(row["speed_limit"]))
         else:
+            total += 1
             td = traffic.get_data(first_point)
             if td is not None:
                 cur_speed = int(td['current_speed'])
@@ -256,6 +258,7 @@ def update_traffic_data():
         })
 
     traffic_cache = []
+    print(total)
     timestamp = (datetime.now() + timedelta(hours=2)).strftime("%d_%m_%Y_%H-%M")
     filename = f"his_data/t_data_{timestamp}.csv"
     content = 'coordinates;color;speed_limit;current_speed\n'
