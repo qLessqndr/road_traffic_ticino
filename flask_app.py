@@ -87,27 +87,31 @@ def get_point_traffic():
 def get_files_for_date():
     selected_date = request.args.get('date')
     if not selected_date:
-        return jsonify({'files': []})
+        return jsonify({'exists': False, 'message': 'No date provided.'})
+    
     formatted_date = datetime.strptime(selected_date, '%Y-%m-%d').strftime('%d_%m_%Y')
-    date_files = []
+    
+    expected_file_name = f"t_data_{formatted_date}.csv"
+    
     url = f'https://api.github.com/repos/{REPO}/contents/his_data'
     headers = {
         'Authorization': f'token {GITHUB_TOKEN}'
     }
+    
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         files = response.json()
         for file in files:
-            if formatted_date in file['name'] and file['name'].endswith('.csv'):
-                date_files.append(file['name'])
+            if file['name'] == expected_file_name:
+                return jsonify({'exists': True, 'file': expected_file_name})
+        
+        return jsonify({'exists': False, 'message': 'File does not exist.'})
     else:
         return jsonify({'success': False, 'message': 'Could not fetch files from GitHub.'})
 
-    return jsonify({'files': date_files})
 
 
-
-def find_nearby_traffic(traffic_cache, coords, radius_km=1.4):
+def find_nearby_traffic(traffic_cache, coords, radius_km=0.7):
     for cached_data in traffic_cache:
         cc = cached_data['coordinates'][0]
         cached_coords = (cc[1], cc[0])
@@ -171,99 +175,129 @@ def save_traffic_data():
         return jsonify({'success': False, 'message': 'Failed to save to GitHub.'})
 
 
+
+def find_closest_time_column(df, target_time):
+    closest_col = None
+    closest_diff = None
+    target_dt = datetime.strptime(target_time, '%H:%M')
+    for col in df.columns:
+        try:
+            col_time = datetime.strptime(col, '%H_%M')
+            diff = abs((col_time - target_dt).total_seconds())
+            
+            if closest_diff is None or diff < closest_diff:
+                closest_diff = diff
+                closest_col = col
+        except ValueError:
+            continue
+
+    return closest_col
+
+
+list_of_df = {}
 @app.route('/load_traffic_data', methods=['GET'])
 def load_traffic_data():
-    file_name = request.args.get('file')
+    date = request.args.get('date')
+    date_obj = datetime.strptime(date, '%Y-%m-%d')    
+    file_name = f't_data_{date_obj.strftime('%d_%m_%Y')}.csv'
+
+    time_of = request.args.get('time')    
+
+    traffic_data = []
+    
     if not file_name:
         return jsonify({'features': []})
 
+    if file_name in list_of_df:
+        df = list_of_df[file_name]
+    else:
+        url = f"https://api.github.com/repos/{REPO}/contents/his_data/{file_name}"
+        headers = {
+            "Authorization": f"token {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github.v3.raw"
+        }        
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            content = response.text
+            df = pd.read_csv(io.StringIO(content), delimiter=";")
+            list_of_df[file_name] = df
+        else:
+            return jsonify({'features': [], 'message': 'File not found on GitHub.'})
+
+    closest_time = find_closest_time_column(df, time_of)
+    if closest_time is None:
+        closest_time = 2
+            
+    for index, row in df.iterrows():
+        traffic_data.append({
+            'coordinates': ast.literal_eval(row["coordinates"]),          
+            'speed_limit': row['speed_limit'],
+            'current_speed': row[closest_time],
+            'color': get_color_by_congestion(row[closest_time], row['speed_limit'])          
+        })        
+
+    return jsonify({'features': [{'geometry': {'coordinates': t['coordinates']}, 'properties': {'speed_limit': t['speed_limit'], 'current_speed': t['current_speed'], 'color': t['color']}} for t in traffic_data]})
+
+
+
+def retrieve_routes(file_name='default_routes.csv'):
+    file_path = f"his_data/{file_name}"    
     url = f"https://api.github.com/repos/{REPO}/contents/his_data/{file_name}"
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
         "Accept": "application/vnd.github.v3.raw"
     }
-    
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        content = response.text
-        df = pd.read_csv(io.StringIO(content), delimiter=";")
-        traffic_data = []
-        
-        for index, row in df.iterrows():
-            traffic_data.append({
-                'coordinates': ast.literal_eval(row["coordinates"]),          
-                'speed_limit': row['speed_limit'],
-                'current_speed': row['current_speed'],
-                'color': get_color_by_congestion(row['current_speed'], row['speed_limit']) #row['color']            
-            })        
-        return jsonify({'features': [{'geometry': {'coordinates': t['coordinates']}, 'properties': {'speed_limit': t['speed_limit'], 'current_speed': t['current_speed'], 'color': t['color']}} for t in traffic_data]})
-    else:
-        return jsonify({'features': [], 'message': 'File not found on GitHub.'})
+    response = requests.get(url, headers=headers)    
+    if response.status_code != 200:
+        return None
+    df = pd.read_csv(io.StringIO(response.text), delimiter=";")
+    return df
 
 
 @app.route('/update_traffic_data', methods=['POST'])
-def update_traffic_data():
+def update_traffic_data():    
+    timestamp = (datetime.now() + timedelta(hours=2)).strftime("%d_%m_%Y")
+    time_of = (datetime.now() + timedelta(hours=2)).strftime("%H_%M")
     total = 0
 
     save_crash_data(crashes.get_crash_data())
-    file_name = 'default_routes.csv'
-    file_path = os.path.join('his_data', file_name)
     
-    url = f"https://api.github.com/repos/{REPO}/contents/his_data/{file_name}"
-    headers = {
-        "Authorization": f"token {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github.v3.raw"
-    }
-    
-    response = requests.get(url, headers=headers)
-    if response.status_code != 200:
-        return jsonify({'success': False, 'message': 'Failed to retrieve default routes.'})
+    df = retrieve_routes(f't_data_{timestamp}.csv')
+    if df is None:
+        df = retrieve_routes()
 
-    df = pd.read_csv(io.StringIO(response.text), delimiter=";")
-    traffic_data = []
-    traffic_data_list = []
     traffic_cache = []
+    current_speeds = []
 
     for index, row in df.iterrows():
         coords = ast.literal_eval(row["coordinates"])
         fp = coords[0]
         first_point = (fp[1], fp[0])
         cached_data = find_nearby_traffic(traffic_cache, first_point)
-        
+        cur_speed = 50
         if cached_data:
             cur_speed = cached_data['current_speed']
-            color = get_color_by_congestion(cur_speed, int(row["speed_limit"]))
         else:
             total += 1
             td = traffic.get_data(first_point)
             if td is not None:
                 cur_speed = int(td['current_speed'])
-                color = get_color_by_congestion(cur_speed, int(row["speed_limit"]))
-            else:
-                cur_speed = 50
-                color = 'grey'
             
             traffic_cache.append({
                 'coordinates': coords,
-                'speed_limit': row['speed_limit'],
-                'current_speed': cur_speed,
-                'color': color
-            })
-        
-        traffic_data.append({
-            'coordinates': coords,
-            'speed_limit': row['speed_limit'],
-            'current_speed': cur_speed,
-            'color': color
-        })
+                'current_speed': cur_speed
+            })        
+        current_speeds.append(cur_speed)
 
-    traffic_cache = []
+    df[f'{time_of}'] = current_speeds
+
     print(total)
-    timestamp = (datetime.now() + timedelta(hours=2)).strftime("%d_%m_%Y_%H-%M")
+
     filename = f"his_data/t_data_{timestamp}.csv"
-    content = 'coordinates;color;speed_limit;current_speed\n'
-    for data in traffic_data:
-        content += f"{data['coordinates']};{data['color']};{data['speed_limit']};{data['current_speed']}\n"
+
+    csv_buffer = io.StringIO()
+    df.to_csv(csv_buffer, sep=';', index=False)
+    content = csv_buffer.getvalue()
 
     success = save_to_github(filename, content)
     
@@ -276,14 +310,16 @@ def update_traffic_data():
 
 def listify_crash_json(js):
     data = []
-    for t in js["incidents"]:
-        data.append({
-            'coordinates': t['geometry']['coordinates'][0], 
-            'description': t['properties']['events'][0]['description'],
-            'startTime': t['properties']['startTime'],
-            'endTime': t['properties']['endTime']
-        })
-    return data
+    if js is not None:
+        for t in js["incidents"]:
+            data.append({
+                'coordinates': t['geometry']['coordinates'][0], 
+                'description': t['properties']['events'][0]['description'],
+                'startTime': t['properties']['startTime'],
+                'endTime': t['properties']['endTime']
+            })
+        return data
+    return []
 
 def save_crash_data(data):
     data_list = listify_crash_json(data)
