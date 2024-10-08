@@ -18,9 +18,9 @@ API_KEY10 = 'aU3PsvoqBrTaGbsEpElPfOGlqBQkKATn'
 API_KEYS = [API_KEY1, API_KEY2, API_KEY3, API_KEY4, API_KEY5, API_KEY6, API_KEY7, API_KEY8, API_KEY9, API_KEY10]
 
 def get_traffic_data(coords, key=API_KEY1, index=0):
-    api_url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/xml?key={key}&point={coords}"
     for key in API_KEYS:
             try:
+                api_url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/xml?key={key}&point={coords}"
                 response = requests.get(api_url, timeout=0.5)
 
                 if response.status_code == 200:
