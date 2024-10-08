@@ -201,8 +201,7 @@ def load_traffic_data():
     date_obj = datetime.strptime(date, '%Y-%m-%d')    
     date_str = date_obj.strftime('%d_%m_%Y')
     file_name = f"t_data_{date_str}.csv"
-
-    time_of = request.args.get('time')    
+ 
 
     traffic_data = []
     
@@ -225,20 +224,35 @@ def load_traffic_data():
         else:
             return jsonify({'features': [], 'message': 'File not found on GitHub.'})
 
-    closest_time = find_closest_time_column(df, time_of)
-    if closest_time is None:
-        closest_time = 2
-            
-    for index, row in df.iterrows():
-        traffic_data.append({
-            'coordinates': ast.literal_eval(row["coordinates"]),          
-            'speed_limit': row['speed_limit'],
-            'current_speed': row[closest_time],
-            'color': get_color_by_congestion(row[closest_time], row['speed_limit'])          
-        })        
+    time_columns = [col for col in df.columns if col not in ['coordinates', 'speed_limit']]
 
-    return jsonify({'features': [{'geometry': {'coordinates': t['coordinates']}, 'properties': {'speed_limit': t['speed_limit'], 'current_speed': t['current_speed'], 'color': t['color']}} for t in traffic_data]})
+    df['coordinates'] = df['coordinates'].apply(lambda x: str(x) if isinstance(x, list) else x)
+    
 
+    time_columns = [col for col in df.columns if col not in ['coordinates', 'speed_limit']]
+
+    df_long = pd.melt(df, id_vars=['coordinates', 'speed_limit'], value_vars=time_columns, 
+                    var_name='time', value_name='current_speed')
+
+    df_long['color'] = df_long.apply(lambda row: get_color_by_congestion(row['current_speed'], row['speed_limit']), axis=1)
+
+    df_long = df_long.astype({
+        'speed_limit': 'float',
+        'current_speed': 'float',
+        'color': 'str',
+    })
+
+    traffic_data = df_long.groupby(['coordinates', 'speed_limit']).apply(
+        lambda x: {
+            'geometry': {'coordinates': ast.literal_eval(x['coordinates'].iloc[0])},
+            'properties': {
+                'speed_limit': x['speed_limit'].iloc[0],
+                'times': {row['time']: {'current_speed': row['current_speed'], 'color': row['color']} for _, row in x.iterrows()}
+            }
+        }
+    ).tolist()
+
+    return jsonify({'features': traffic_data})
 
 
 def retrieve_routes(file_name='default_routes.csv'):
@@ -275,7 +289,6 @@ def update_traffic_data():
         fp = coords[0]
         first_point = (fp[1], fp[0])
         cached_data = find_nearby_traffic(traffic_cache, first_point)
-        cur_speed = 50
         if cached_data:
             cur_speed = cached_data['current_speed']
         else:
@@ -283,6 +296,9 @@ def update_traffic_data():
             td = traffic.get_data(first_point)
             if td is not None:
                 cur_speed = int(td['current_speed'])
+            else:
+                cur_speed = 50
+                print(f"Problem in gathering data: {td}")
             
             traffic_cache.append({
                 'coordinates': coords,
