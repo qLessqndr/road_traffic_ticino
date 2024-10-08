@@ -4,18 +4,18 @@ import geopandas as gpd
 import requests
 import xml.etree.ElementTree as ET
 
-API_KEY1 = 'LwAGCFlGMgalWGjLjEINzWRRqwJaEkSH'
+API_KEY1 = 'UVsn6VzZWgF7g6WyJsHIK0PB7AxIViMR'
 API_KEY2 = '9rOohoq8cY5OfzXX6eEWyJ3OKTc4Evwy'
 API_KEY3 = 'svPxr72ecAxZZbNeHVBrSUkgzdTeucBH'
 API_KEY4 = 'CGP7Hg94SLpGGto15LrxMfUHIFVgL3qb'
 API_KEY5 = '5QD1LbzXsN3WePtgSPoOjcNwIEAa7qWb'
-API_KEY6 = ''
-API_KEY7 = ''
-API_KEY8 = ''
-API_KEY9 = ''
-API_KEY10 = ''
+API_KEY6 = 'LwAGCFlGMgalWGjLjEINzWRRqwJaEkSH'
+API_KEY7 = 'GE4eKKsC6jYwVoOUeEwzlIz0F3TPwR6G'
+API_KEY8 = 'EazXTUVqwB0B1eMGLQGhLyaibbQEDSqA'
+API_KEY9 = 'QTnBvR9MfVp1mHPxAUt6UAtV2x7FlmM1'
+API_KEY10 = 'aU3PsvoqBrTaGbsEpElPfOGlqBQkKATn'
 
-API_KEYS = [API_KEY1, API_KEY2, API_KEY3, API_KEY4, API_KEY5]
+API_KEYS = [API_KEY1, API_KEY2, API_KEY3, API_KEY4, API_KEY5, API_KEY6, API_KEY7, API_KEY8, API_KEY9, API_KEY10]
 
 def get_traffic_data(coords, key=API_KEY1, index=0):
     api_url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/xml?key={key}&point={coords}"
