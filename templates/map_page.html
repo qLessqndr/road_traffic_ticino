@@ -580,22 +580,22 @@
 		</div>
 		<script>
 
-function generateTicksAndLabels() {
-            const tickContainer = document.getElementById('tickMarks');
-            const labelContainer = document.getElementById('labelContainer');
-            tickContainer.innerHTML = '';
-            labelContainer.innerHTML = '';
-            for (let i = 0; i <= 23; i++) {
-                const tick = document.createElement('div');
-                tick.className = 'tick';
-                tickContainer.appendChild(tick);
-                const label = document.createElement('div');
-                label.textContent = `${String(i).padStart(2, '0')}:00`;
-                labelContainer.appendChild(label);
-            }
-        }
-        
-        generateTicksAndLabels();
+			function generateTicksAndLabels() {
+				const tickContainer = document.getElementById('tickMarks');
+				const labelContainer = document.getElementById('labelContainer');
+				tickContainer.innerHTML = '';
+				labelContainer.innerHTML = '';
+				for (let i = 0; i <= 23; i++) {
+					const tick = document.createElement('div');
+					tick.className = 'tick';
+					tickContainer.appendChild(tick);
+					const label = document.createElement('div');
+					label.textContent = `${String(i).padStart(2, '0')}:00`;
+					labelContainer.appendChild(label);
+				}
+			}
+			
+			generateTicksAndLabels();
 
                 var map;
 
@@ -689,8 +689,9 @@ function generateTicksAndLabels() {
                     markers = [];
                 }
 				
-                function displayTrafficData(data) {
-                    if (!data.features || data.features.length === 0) return;
+                function displayTrafficData(data, stringTime) {
+					resetMapElements();
+                    if (!data.features || data.features.length === 0 || data.features[0].properties.times[stringTime] === undefined) return;
 
                     data.features.forEach(function(item) {
                         if (item.geometry && item.geometry.coordinates) {
@@ -699,21 +700,21 @@ function generateTicksAndLabels() {
                             });
 
                             var line = L.polyline(lineCoordinates, {
-                                color: item.properties.color || 'gray',
+                                color: item.properties.times[stringTime].color || 'gray',
                                 weight: 5
                             }).addTo(map);
 
                             lines.push(line);
 
                             var speedLimit = item.properties.speed_limit || 'N/A';
-                            var currentSpeed = item.properties.current_speed || 'N/A';
+                            var currentSpeed = item.properties.times[stringTime].current_speed || 'N/A';
                             line.bindTooltip("Speed Limit: " + speedLimit + " km/h<br>Current Speed: " + currentSpeed + " km/h", {
                                 permanent: false, direction: 'auto'
                             });
 
                             trafficData.push({
                                 coordinates: lineCoordinates,
-                                color: item.properties.color,
+                                color: item.properties.times[stringTime].color,
                                 speed_limit: speedLimit,
                                 current_speed: currentSpeed
                             });
@@ -723,6 +724,7 @@ function generateTicksAndLabels() {
 
                 document.getElementById('dateInput').addEventListener('change', function() {
                     var selectedDate = document.getElementById('dateInput').value;
+					loadTrafficData(selectedDate)
                     if (!selectedDate) return;
                 });
 
@@ -735,35 +737,63 @@ function generateTicksAndLabels() {
 				const timeSlider = document.getElementById('timeSlider');
 				const selectedTimeDisplay = document.getElementById('selectedTime');
 
+				var todayData;
+
 				timeSlider.addEventListener('input', function() {
 					const selectedTime = formatTime(this.value);
-					
-					loadTrafficData(selectedTime);
+					changeTime(selectedTime);
 				});
 
-				function loadTrafficData(selectedTime) {
-					var selectedDate = document.getElementById('dateInput').value;	
+				function changeTime(selectedTime) {
+					var hour = 0;
+					var minute = 0;
 
-					if (!selectedDate || !selectedTime) {
-						alert("Please select both date and time.");
+					if (selectedTime) {
+						hour = minute/60;
+						minute %= 60;
+					}
+					
+					displayTrafficData(todayData, getClosestTime(todayData, hour, minute));
+				}
+
+				function getClosestTime(data, hour, minute) {
+					const selectedTime = `${String(hour).padStart(2, '0')}_${String(minute).padStart(2, '0')}`;
+					return selectedTime;
+				}
+
+				function convertTimeToString() {	
+					var minutes = document.getElementById('timeSlider').value;			
+					var hours = Math.floor(minutes / 60);
+					var remainingMinutes = minutes % 60;
+					var formattedHours = String(hours).padStart(2, '0');
+					var formattedMinutes = String(remainingMinutes).padStart(2, '0');
+					return `${formattedHours}_${formattedMinutes}`;
+				}
+				
+
+				function loadTrafficData(selectedDate) {
+					
+					if (!selectedDate) {
+						alert("Please select the date");
 						return;
 					}
 
 					showLoadingOverlay();
-					fetch(`/load_traffic_data?date=${selectedDate}&time=${selectedTime}`)
+					fetch(`/load_traffic_data?date=${selectedDate}`)
 						.then(response => {
 							if (!response.ok) throw new Error('Network response was not ok');
 							return response.json();
 						})
 						.then(data => {
 							resetMapElements();
-							displayTrafficData(data);
+							todayData = data;
 						})
 						.catch(error => {
 							console.error("Error loading traffic data:", error);
 						})
 						.finally(() => {
 							hideLoadingOverlay();
+							changeTime();
 						});
 				};
 
