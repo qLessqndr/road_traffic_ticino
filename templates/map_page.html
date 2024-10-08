@@ -9,6 +9,7 @@
 		<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 		<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+		<script src="https://unpkg.com/leaflet.glify"></script>
 		<style>
 			* 
 
@@ -643,7 +644,7 @@
 
 				let currentStyle = 'main';
 
-                map = L.map('map').setView([46.1512, 8.7366], 10);
+                map = L.map('map', { renderer: L.canvas() }).setView([46.1512, 8.7366], 10);
 				function addTileLayer() {
 					const url = `https://api.tomtom.com/map/1/tile/basic/${currentStyle}/{z}/{x}/{y}.png?key=uwGBFZTtDZAyJwKERrt4xSiaFcdMhGXp`;
 					return L.tileLayer(url, {
@@ -729,6 +730,7 @@
 
 				timeSlider.addEventListener('input', function() {
 					const selectedTime = formatTime(this.value);
+					console.log(selectedTime);
 					displayTrafficData(todayData, selectedTime);
 				});
 
