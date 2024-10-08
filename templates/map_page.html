@@ -20,7 +20,7 @@
             background-color: #2b3a47;
             color: white;
             font-family: Arial, sans-serif;
-            width: 100%;
+            width: 99%;
         }
 
         .time-slider {
@@ -560,11 +560,6 @@
 						<button onclick="changeStyle()" id="toggleStyle">NIGHT STYLE</button>
 						<button class="btn-secondary" id="getCrashes">GET CRASHES</button>
 					</div>
-					<div class="button-container">
-						<button class="btn-primary" id="saveData">SAVE</button>
-						<button class="btn-secondary" id="updateTrafficData">GATHER DATA</button>
-						<button class="btn-primary" id="closeMap">CLOSE</button>
-					</div>
 				</div>
 			</div></div>
 
@@ -711,27 +706,20 @@
                             line.bindTooltip("Speed Limit: " + speedLimit + " km/h<br>Current Speed: " + currentSpeed + " km/h", {
                                 permanent: false, direction: 'auto'
                             });
-
-                            trafficData.push({
-                                coordinates: lineCoordinates,
-                                color: item.properties.times[stringTime].color,
-                                speed_limit: speedLimit,
-                                current_speed: currentSpeed
-                            });
                         }
                     });
                 }
 
                 document.getElementById('dateInput').addEventListener('change', function() {
                     var selectedDate = document.getElementById('dateInput').value;
-					loadTrafficData(selectedDate)
                     if (!selectedDate) return;
+					loadTrafficData(selectedDate)
                 });
 
 				function formatTime(minutes) {
 					const hours = String(Math.floor(minutes / 60)).padStart(2, '0');
 					const mins = String(minutes % 60).padStart(2, '0');
-					return `${hours}:${mins}`;
+					return `${hours}_${mins}`;
 				}
 
 				const timeSlider = document.getElementById('timeSlider');
@@ -741,16 +729,19 @@
 
 				timeSlider.addEventListener('input', function() {
 					const selectedTime = formatTime(this.value);
-					changeTime(selectedTime);
+					displayTrafficData(todayData, selectedTime);
 				});
 
 				function changeTime(selectedTime) {
 					var hour = 0;
 					var minute = 0;
 
-					if (selectedTime) {
-						hour = minute/60;
-						minute %= 60;
+					let now = new Date;
+
+					hour = now.getUTCHours() + 2;
+					const m = now.getUTCMinutes() + 2;
+					if(m > 32) {
+						minute = 30;
 					}
 					
 					displayTrafficData(todayData, getClosestTime(todayData, hour, minute));
@@ -797,7 +788,7 @@
 						});
 				};
 
-                document.getElementById('updateTrafficData').addEventListener('click', function() {
+                /*document.getElementById('updateTrafficData').addEventListener('click', function() {
 
                     const password = prompt("Please enter the password to gather data:");
                     const correctPassword = "orcodio22";
@@ -828,36 +819,9 @@
                             hideLoadingOverlay();
                         });
                     }
-                });
+                });*/
 
-                document.getElementById('saveData').addEventListener('click', function() {
-                    if (trafficData.length === 0) return;
-                    
-                    const password = prompt("Please enter the password to gather data:");
-                    const correctPassword = "orcodio22";
-
-                    if (password === correctPassword) {
-                        showLoadingOverlay();
-                    fetch('/save_traffic_data', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ data: trafficData })
-                    })
-                        .then(response => {
-                            if (!response.ok) throw new Error('Network response was not ok');
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log("Traffic data saved successfully!");
-                        })
-                        .catch(error => {
-                            console.error("Error saving traffic data:", error);
-                        })
-                        .finally(() => {
-                            hideLoadingOverlay();
-                        });
-                    }
-                });
+                
         </script>
     </body>
 </html>
