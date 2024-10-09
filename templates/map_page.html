@@ -686,9 +686,13 @@
                 }
 				
                 function displayTrafficData(data, stringTime) {
+                    if (!data.features || data.features.length === 0) return;
+					
+					if(!data.features[0].properties.times.hasOwnProperty(stringTime)) {
+						return;
+					}
+					
 					resetMapElements();
-                    if (!data.features || data.features.length === 0 || data.features[0].properties.times[stringTime] === undefined) return;
-
                     data.features.forEach(function(item) {
                         if (item.geometry && item.geometry.coordinates) {
                             var lineCoordinates = item.geometry.coordinates.map(function(coord) {
