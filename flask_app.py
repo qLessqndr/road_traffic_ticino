@@ -111,7 +111,7 @@ def get_files_for_date():
 
 
 
-def find_nearby_traffic(traffic_cache, coords, radius_km=1):
+def find_nearby_traffic(traffic_cache, coords, radius_km=0.5):
     for cached_data in traffic_cache:
         cc = cached_data['coordinates'][0]
         cached_coords = (cc[1], cc[0])
@@ -415,4 +415,5 @@ def crash_data():
 
 
 if __name__ == '__main__':
+    update_traffic_data()
     app.run(host='0.0.0.0', port=5000, debug=True)
