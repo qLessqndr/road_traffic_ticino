@@ -415,5 +415,4 @@ def crash_data():
 
 
 if __name__ == '__main__':
-    update_traffic_data()
     app.run(host='0.0.0.0', port=5000, debug=True)
