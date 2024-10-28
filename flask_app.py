@@ -271,9 +271,11 @@ def retrieve_routes(file_name='default_routes.csv'):
 
 @app.route('/update_traffic_data', methods=['POST'])
 def update_traffic_data():    
-    timestamp = (datetime.now() + timedelta(hours=2)).strftime("%d_%m_%Y")
-    time_of = (datetime.now() + timedelta(hours=2)).strftime("%H_%M")
-    total = 0
+    utc_hours = 1 #Change when legal/solar hour change
+    
+    timestamp = (datetime.now() + timedelta(hours=utc_hours)).strftime("%d_%m_%Y")
+    time_of = (datetime.now() + timedelta(hours=utc_hours)).strftime("%H_%M")
+    #total = 0
 
     save_crash_data(crashes.get_crash_data())
     
