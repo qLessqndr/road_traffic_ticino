@@ -294,7 +294,7 @@ def update_traffic_data():
         if cached_data:
             cur_speed = cached_data['current_speed']
         else:
-            total += 1
+            #total += 1
             td = traffic.get_data(first_point)
             if td is not None:
                 cur_speed = int(td['current_speed'])
@@ -310,7 +310,7 @@ def update_traffic_data():
 
     df[f'{time_of}'] = current_speeds
 
-    print(total)
+    #print(total)
 
     filename = f"his_data/t_data_{timestamp}.csv"
 
