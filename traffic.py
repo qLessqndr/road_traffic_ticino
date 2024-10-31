@@ -4,20 +4,31 @@ import geopandas as gpd
 import requests
 import xml.etree.ElementTree as ET
 
-API_KEY1 = 'UVsn6VzZWgF7g6WyJsHIK0PB7AxIViMR'
-API_KEY2 = '9rOohoq8cY5OfzXX6eEWyJ3OKTc4Evwy'
-API_KEY3 = 'svPxr72ecAxZZbNeHVBrSUkgzdTeucBH'
-API_KEY4 = 'CGP7Hg94SLpGGto15LrxMfUHIFVgL3qb'
-API_KEY5 = '5QD1LbzXsN3WePtgSPoOjcNwIEAa7qWb'
-API_KEY6 = 'LwAGCFlGMgalWGjLjEINzWRRqwJaEkSH'
-API_KEY7 = 'GE4eKKsC6jYwVoOUeEwzlIz0F3TPwR6G'
-API_KEY8 = 'EazXTUVqwB0B1eMGLQGhLyaibbQEDSqA'
-API_KEY9 = 'QTnBvR9MfVp1mHPxAUt6UAtV2x7FlmM1'
-API_KEY10 = 'aU3PsvoqBrTaGbsEpElPfOGlqBQkKATn'
+API_KEYS = [
+    'UVsn6VzZWgF7g6WyJsHIK0PB7AxIViMR',
+    '9rOohoq8cY5OfzXX6eEWyJ3OKTc4Evwy',
+    'svPxr72ecAxZZbNeHVBrSUkgzdTeucBH',
+    'CGP7Hg94SLpGGto15LrxMfUHIFVgL3qb',
+    '5QD1LbzXsN3WePtgSPoOjcNwIEAa7qWb',
+    'LwAGCFlGMgalWGjLjEINzWRRqwJaEkSH',
+    'GE4eKKsC6jYwVoOUeEwzlIz0F3TPwR6G',
+    'EazXTUVqwB0B1eMGLQGhLyaibbQEDSqA',
+    'QTnBvR9MfVp1mHPxAUt6UAtV2x7FlmM1',
+    'aU3PsvoqBrTaGbsEpElPfOGlqBQkKATn',
+    'x3BpUkaSkTYodhypDqGCGsbTfoomq8UO',
+    'sTyD4IYjQKDrnrLHkn8aU1J94AeAXQIH',
+    'zdWSqW9cjjWGtJl123A7XchUpKzNbXzA',
+    'RvipU5Qh8Krk3sBwxj0yUSf4z6yRabPt',
+    'DrVVLSAzOum8Y0ZOBP7u3SIB0BdGeKbu',
+    'gwwe1M1huk6lBwGRAXTosLaed9BiMZ8E',
+    'xfXAt5ECrGNCecMjF9H70epAQVGvOJ9s',
+    'mz9PilygMZkR426FmtmzmebTmjkr2m28',
+    'Z3CbTUWGiSyMGc8etFoF8Q6VxFJsAPNa',
+    'gSCGsC6JXQNTOWBf8K6nPNHvaiytB1Xs',
+    'ga0nsqAYkh9x32EG9ZZALrdzh24am8dY'
+]
 
-API_KEYS = [API_KEY1, API_KEY2, API_KEY3, API_KEY4, API_KEY5, API_KEY6, API_KEY7, API_KEY8, API_KEY9, API_KEY10]
-
-def get_traffic_data(coords, key=API_KEY1, index=0):
+def get_traffic_data(coords):
     for key in API_KEYS:
             try:
                 api_url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/xml?key={key}&point={coords}"
