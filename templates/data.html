@@ -56,12 +56,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 20px;
         }
 
         video {
             width: 100%;
             height: auto;
+			margin-top: 50px;
             border-radius: 15px;
         }
 
@@ -139,16 +139,100 @@
 			display: flex; /* Enable Flexbox */
 			justify-content: center; /* Center horizontally */
 			align-items: center; /* Center vertically */
-			background: linear-gradient(45deg, #0310ce 50%, #e70000 50%); /* Gradient for Canton Ticino colors */
-			border-radius: 10px;
+						border-radius: 10px;
 			padding: 5px;
             font-family: Helvetica;
+		}
+
+
+		.title-container {
+			position: absolute;
+			display: flex;
+			display: flex;
+			margin-top: 50px;
+			justify-content: left; 
+			width: 95%;
+		}
+
+		.title-subcontainer {
+			position: relative;
+			display: flex;
+			flex-direction:column;
+			margin-top: 50px;
+		}
+
+		.title-left {
+			font-family: "HeptaSlab";
+			z-index: 100;
+			color: red;
+			font-size: 100px;
+			font-weight: 100;
+			max-height: 50px;
+		}
+
+		#subtitle {
+			position: relative;
+			z-index: 5;
+			color: white;
+			font-size: 80px;
+			
+			font-weight: 100;
+		}
+
+		.title-subsubcontainer {	
+			position: relative;
+			display: block;
+			height: 100%;
+			overflow: hidden;
+			margin-top: 50px;
+		}
+
+		.pulsate {
+			position: relative;
+			animation: none;
+			animation-iteration-count: infinite;
+			-webkit-animation: "pulsate" 2s ease-in-out;
+			-webkit-animation-iteration-count: infinite;
+			
+			font-family: "HeptaSlab";
+			z-index: 100;
+			color: rgb(182, 63, 63);
+			font-weight: 250;
+			font-size: 100px;
+			opacity: 0.5;
+		}
+
+		@-webkit-keyframes pulsate {
+			0% {
+				
+				font-weight: 200;
+				opacity: 0.5;
+			}
+			25% {
+				font-weight: 800;
+				opacity: 1.0;
+			}
+			50% {
+				opacity: 0.5;
+				font-weight: normal;
+			}
+			100% {
+				
+				opacity: 0.5;
+				font-weight: 200;
+			}
 		}
 
         @font-face {
             font-family: Helvetica;
             src: url("Helvetica-Bold.ttf")
         }
+
+        @font-face {
+            font-family: "HeptaSlab";
+            src: url("HeptaSlab.ttf")
+        }
+
     </style>
 </head>
 <body>
@@ -164,6 +248,24 @@
 				</ul>
 			</nav>
 		</div>
+	<div class="title-container">
+		<div class="title-subcontainer">
+			<div class="title-left" id="subtitle">Switzerland's</div>
+			<div class="title-subsubcontainer">
+				<div class="pulsate">Traffic</div>
+			</div>
+			<div class="title-left" id="subtitle" style="font-size: 30px; position: relative; margin-top: 25px; word-wrap: break-word; max-width: 50%">
+				How much has traffic in Switzerland
+				changed in the last 60 years?
+			</div>
+		</div>
+	</div>
+    <div class="video-container">
+        <video id="customVideo" autoplay muted loop>
+            <source src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/start_video.mp4" type="video/mp4">
+        </video>
+    </div>
+	
     <div class="video-container">
         <video id="customVideo" autoplay muted loop>
             <source src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/video.mp4" type="video/mp4">
