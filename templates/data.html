@@ -128,14 +128,14 @@
 			text-decoration: none;
 			font-size: 1rem;
 			transition: color 0.3s;
-            font-family: Arial;
+            font-family: Helvetica;
 		}
 		.top-bar nav ul li a:hover {
-			color: #ddd;
+			color: #737373;
 		}
 
         #title-style {
-			font-size: clamp(2.5rem, 3vw + 3.5rem, 2.5rem);
+			font-size: 30px;
 			display: flex; /* Enable Flexbox */
 			justify-content: center; /* Center horizontally */
 			align-items: center; /* Center vertically */
@@ -158,7 +158,7 @@
 			position: relative;
 			display: flex;
 			flex-direction:column;
-			margin-top: 50px;
+			margin-top: 150px;
 		}
 
 		.title-left {
@@ -199,27 +199,65 @@
 			color: rgb(182, 63, 63);
 			font-weight: 250;
 			font-size: 100px;
-			opacity: 0.5;
+			opacity: 1;
+		}
+
+		#subtitle2 {
+			font-size: 30px; position: relative; margin-top: 25px; word-wrap: break-word; max-width: 50%;
+			color: white;
+			font-weight: 150;
+		}
+
+		.descriptions {
+			margin: 0;
+			position: relative;
+			width: 100%;
+			background-color: #00000000;
+			height: 300px;
+			opacity: 1;
+
+			text-align: center;
+			font-family: "HeptaSlab";
+			font-size: 80px;
+			font-weight: 200;
+			color: #fff;
+			opacity: 0;
+			transition: opacity 0.3s ease-in-out;
+			font-size: 50px;
+		}
+
+		.descriptions-title {
+			position: relative;
+			font-family: "HeptaSlab";
+			font-weight: 200;
+			top: 60%;
+		}
+		
+		.descriptions-text {
+			position: relative;
+			font-family: "HeptaSlab";
+			font-weight: 200;
+			top: 60%;
+			font-size: 20px;
 		}
 
 		@-webkit-keyframes pulsate {
 			0% {
 				
 				font-weight: 200;
-				opacity: 0.5;
+				color: white;
 			}
 			25% {
 				font-weight: 800;
-				opacity: 1.0;
+				color: red;
 			}
 			50% {
-				opacity: 0.5;
 				font-weight: normal;
 			}
 			100% {
 				
-				opacity: 0.5;
 				font-weight: 200;
+				color: white;
 			}
 		}
 
@@ -232,13 +270,68 @@
             font-family: "HeptaSlab";
             src: url("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/HeptaSlab.ttf")
         }
+		
+		@media only screen and (max-width: 900px) {
+			.title-left {
+				font-size: 70px;
+			}
+			#subtitle {
+				font-size: 40px;
+				font-weight: 200;
+			}
+			#subtitle2 {
+				margin-top: 6px;
+				font-size: 15px;
+				font-weight: 200;
+			}
+			.title-subsubcontainer {
+				overflow: visible;
+			}
+			.pulsate {
+				margin-top: -45px;
+				font-size: 70px;
+			}
+			.top-bar h1 {
+				font-size: 10px;
+			}
+			#title-style {
+				font-size: 20px;
+			}
+		}
+
+		@media only screen and (max-width: 600px) {
+			.title-left {
+				font-size: 50px;
+			}
+			#subtitle {
+				font-size: 30px;
+			}
+			#subtitle2 {
+				margin-top: -6px;
+				font-size: 15px;
+			}
+			.title-subsubcontainer {
+				overflow: visible;
+			}
+			.pulsate {
+				margin-top: -50px;
+				font-size: 60px;
+			}
+			.top-bar nav ul li a {
+				font-size: 12px;
+			}
+			#title-style {
+				font-size: 20px;
+			}
+		}
 
     </style>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div class="top-background"></div>
 		<div class="top-bar">
-			<h1 id="title-style" style="font-family: Helvetica">tiTraffic</h1>
+			<h1 id="title-style">tiTraffic</h1>
 			<nav>
 				<ul>
 					<li><a href="frontend.html">Home</a></li>
@@ -254,23 +347,38 @@
 			<div class="title-subsubcontainer">
 				<div class="pulsate">Traffic</div>
 			</div>
-			<div class="title-left" id="subtitle" style="font-size: 30px; position: relative; margin-top: 25px; word-wrap: break-word; max-width: 50%">
+			<div class="title-left" id="subtitle2">
 				How much has traffic in Switzerland
 				changed in the last 60 years?
 			</div>
 		</div>
 	</div>
+
     <div class="video-container">
-        <video id="customVideo" autoplay muted loop>
+        <video id="customVideo" autoplay muted loop style="margin-left: 150px">
             <source src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/start_video.mp4" type="video/mp4">
         </video>
     </div>
-	
+		
+	<div class="descriptions">
+		<div class="descriptions-title">Animation</div>	
+		<div class="descriptions-text">In this animation we will explore the traffic in the last 60 years in Switzerland</div>		
+	</div>
     <div class="video-container">
-        <video id="customVideo" autoplay muted loop>
+        <video id="customVideo" controls muted loop>
             <source src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/video.mp4" type="video/mp4">
         </video>
     </div>
+
+    <div class="descriptions">
+		<div class="descriptions-title">Gotthard-Tunnel opening </div>	
+		<div class="descriptions-text">In this graph we can see what happened when the Gotthard-Tunnel opened </div>		
+	</div>
+
+	<div class="content">		
+        <img src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/image.png" alt="image">
+    </div>
+
     <div class="content">
         <h1>More graphs and descriptions</h1>
         <p>*u*</p>
@@ -278,3 +386,27 @@
     </div>
 </body>
 </html>
+
+<script>
+	//texts fading in and out
+document.addEventListener("DOMContentLoaded", () => {
+    const elements = document.querySelectorAll(".descriptions");
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.intersectionRatio >= 0.3) {
+                entry.target.style.opacity = 1;  // Compaiono quando almeno 30% visibile
+            } else if (entry.intersectionRatio < 0.5) {
+                entry.target.style.opacity = 0;  // Scompaiono quando meno del 50% visibile
+            }
+        });
+    }, {
+        threshold: [0, 0.5], // Quando è visibile il 30% o più, diventa visibile; quando il 50% è fuori, scompare
+        rootMargin: "-30% 0px -30% 0px"
+    });
+
+    elements.forEach((el) => observer.observe(el));
+});
+
+
+</script>
