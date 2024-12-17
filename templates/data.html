@@ -93,7 +93,7 @@
 
     .active-pip {
         font-weight: bold;
-        color: red;
+        color: rgb(255, 255, 255);
     }
 
         
@@ -473,9 +473,12 @@
     </div>
 	
 	<svg width="1300" height="500"></svg>
-	<div id="year-slider"></div>
-	<span id="year-display">2003</span>
-	<button id="play-button" class="pause"></button>
+	<div style="display: grid; grid-template-rows: 1; justify-content: space-between; grid-template-columns: 2">			
+		<button id="play-button" class="pause" style="z-index: 10000"></button></div>
+		<div id="year-slider"></div>
+	</div>
+	<span id="year-display" style="color: transparent">2003</span>
+
 </body>
 </html>
 
@@ -744,8 +747,6 @@ const svg = d3.select("svg");
         connect: true,
         range: {
           'min': 2003,
-          '10%' : 2005,
-          '50%' : 2010,
           'max': 2023
         },
         step: 0.0,
@@ -768,7 +769,7 @@ const svg = d3.select("svg");
       slider.noUiSlider.on('update', function (values, handle) {
         const year = values[handle];
         animateBars(year);
-        d3.select("#year-display").text(year);
+        d3.select("#year-display").text(Math.round(year));
         if (activePips[handle]) {
         activePips[handle].classList.remove('active-pip');
         }
@@ -801,7 +802,7 @@ const svg = d3.select("svg");
 
             currentYear+=0.025;
             slider.noUiSlider.set(currentYear);
-            d3.select("#year-display").text(currentYear);
+            d3.select("#year-display").text(Math.round(currentYear));
           }, 50);
         } else {
           clearInterval(interval);
