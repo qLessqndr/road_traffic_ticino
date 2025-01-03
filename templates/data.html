@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-	
-	<script src="https://d3js.org/d3.v7.min.js"></script>
-	<link href="https://cdn.jsdelivr.net/npm/nouislider@15.5.0/dist/nouislider.min.css" rel="stylesheet">
-	<script src="https://cdn.jsdelivr.net/npm/nouislider@15.5.0/dist/nouislider.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dataviz</title>
@@ -18,83 +14,6 @@
             background-color: black;
             color: white;
         }
-
-		svg {
-      margin-bottom: 20px;
-    }
-
-    #year-slider {
-      width: 800px;
-      margin-bottom: 20px;
-    }
-
-    .nouislider {
-      background: #333;
-      border-radius: 10px;
-    }
-
-    .nouislider .noUi-handle {
-      background: #4CAF50;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      top: -7px;
-    }
-
-    .nouislider .noUi-connect {
-      background: #f1f1f1;
-    }
-
-    #play-button {
-      width: 30px;
-      height: 30px;
-      background-color: transparent;
-      border: 2px solid white;
-      border-radius: 5px;
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      font-size: 16px;
-      color: white;
-    }
-
-    #play-button.play {
-      font-size: 20px;
-    }
-
-    #play-button.pause::before {
-      content: ">";
-    }
-
-    #play-button.play::before {
-      content: "||";
-    }
-
-    .bar:hover {
-      opacity: 0.8;
-    }
-
-    .axis path, .axis line {
-      shape-rendering: crispEdges;
-      stroke: white;
-    }
-
-    .axis text {
-      fill: white;
-    }
-
-    .bar-text {
-      font-size: 14px;
-      fill: white;
-      font-family: Arial;
-      font-weight: 500;
-    }
-
-    .active-pip {
-        font-weight: bold;
-        color: rgb(255, 255, 255);
-    }
 
         
 		.sidebar {
@@ -220,7 +139,7 @@
 			display: flex; /* Enable Flexbox */
 			justify-content: center; /* Center horizontally */
 			align-items: center; /* Center vertically */
-			border-radius: 10px;
+						border-radius: 10px;
 			padding: 5px;
             font-family: Helvetica;
 		}
@@ -302,6 +221,7 @@
 			font-size: 80px;
 			font-weight: 200;
 			color: #fff;
+			opacity: 0;
 			transition: opacity 0.3s ease-in-out;
 			font-size: 50px;
 		}
@@ -455,35 +375,20 @@
 		<div class="descriptions-text">In this graph we can see what happened when the Gotthard-Tunnel opened </div>		
 	</div>
 
-	
-
 	<div class="content">		
         <img src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/image.png" alt="image">
     </div>
 
-	
     <div class="content">
-        <h1></h1>
+        <h1>More graphs and descriptions</h1>
+        <p>*u*</p>
+        <img src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/image.png" alt="image">
     </div>
-
-
-    <div class="descriptions">
-        <div class="descriptions-title">Worse places in Ticino</div>
-        <div class ="descriptions-text">Top 6 most busy roads</div>		
-    </div>
-	
-	<svg width="1300" height="500"></svg>
-	<div style="display: grid; grid-template-rows: 1; justify-content: space-between; grid-template-columns: 2">			
-		<button id="play-button" class="pause" style="z-index: 10000"></button></div>
-		<div id="year-slider"></div>
-	</div>
-	<span id="year-display" style="color: transparent">2003</span>
-
 </body>
 </html>
 
 <script>
-/*	//texts fading in and out
+	//texts fading in and out
 document.addEventListener("DOMContentLoaded", () => {
     const elements = document.querySelectorAll(".descriptions");
 
@@ -501,317 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     elements.forEach((el) => observer.observe(el));
-});*/
-
-const svg = d3.select("svg");
-    const width = +svg.attr("width");
-    const height = +svg.attr("height");
-
-    const margin = { top: 20, right: 100, bottom: 80, left: 200 };
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
-
-    const xScale = d3.scaleLinear().range([0, innerWidth]);
-    const yScale = d3.scaleBand().range([0, innerHeight]).padding(0.1);
-
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-    const xAxisGroup = g.append("g").attr("transform", `translate(0,${innerHeight})`);
-    const yAxisGroup = g.append("g");
-
-    g.append("rect")
-      .attr("class", "x-axis-background")
-      .attr("x", 0)
-      .attr("y", innerHeight)
-      .attr("width", innerWidth + 30)
-      .attr("height", height - innerHeight)
-      .attr("fill", "black")
-      .lower();
-
-    const yearText = g.append("text")
-      .attr("id", "current-year")
-      .attr("x", innerWidth - 10)
-      .attr("y", innerHeight - 70)
-      .style("fill", "white")
-      .style("font-size", "24px")
-      .style("text-anchor", "end")
-      .style("font-family", "Arial")
-      .style("font-weight", "500")
-      .style("font-size", "100")
-      .text("2003");
-
-    const totalText = g.append("text")
-      .attr("id", "total-value")
-      .attr("x", innerWidth - 15)
-      .attr("y", innerHeight - 30)
-      .style("fill", "white")
-      .style("font-size", "18px")
-      .style("text-anchor", "end")
-      .style("font-family", "Arial")
-      .style("font-weight", "200")
-      .style("font-size", "20")
-      .text("Total: 0");
-
-    let data = [];
-    let currentYear = 2003;
-    let playing = false;
-    let interval;
-
-    const colorScale = d3.scaleLinear()
-      .domain([0, 1])
-      .range(["#e30f00", "#ff9900"]);
-
-    d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/final_dataset.csv").then((rawData) => {
-      data = rawData.map((row) => {
-        const station = row["Station"];
-        const canton = row["Canton"];
-        const yearMeans = Object.entries(row)
-          .filter(([key, value]) => key.includes("Year mean"))
-          .map(([key, value]) => ({
-            year: +key.split("_")[1],
-            value: +value || 0,
-            nextValue: NaN,
-          }));
-        return { station, canton, yearMeans };
-      });
-
-      console.log(data);
-
-      const tiData = data.filter((d) => d.canton === "TI");
-      const barsGroup = g.append("g").attr("class", "bars-group");
-
-      const stationNames = {
-        "BRISSAGO S": "Brissago Sud",
-        "STABIO": "Stabio",
-        "GRANCIA (AS)": "Grancia",
-        "CHIASSO-BROGEDA (AS)": "Chiasso-Brogeda",
-        "MONTE CENERI (AS)": "Monte Ceneri",
-        "BIASCA S (AS)": "Biasca Sud",
-        "MENDRISIO S (AS)": "Mendrisio Sud",
-        "MOLENO N (AB)": "Moleno Nord",
-        "CAMIGNOLO (AS)": "Camignolo",
-        "QUINTO (AS)": "Quinto",
-        "MAGADINO": "Magadino",
-        "SOLDUNO N": "Solduno Nord",
-        "CIRCONVALLAZIONE DI LUGANO": "Lugano (C)",
-        "MENDRISIO N  (AS)": "Mendrisio Nord",
-        "QUARTINO": "Quartino",
-        "CAVIANO DOGANA DIRINELLA": "Caviano Dogana",
-        "OLIVONE - LUCOMAGNO": "Olivone-Lucomagno",
-        "TENERO": "Tenero",
-        "INTRAGNA-CENTOVALLI": "Intragna-Centovalli",
-        "ASCONA GALLERIA": "Ascona Galleria",
-        "LOCARNO, TUNNEL MAPPO MORETTINA": "Tunnel Mappo Morettina",
-        "GALLERIA VEDEGGIO-CASSARATE": "Galleria Vedeggio-Cassarate",
-        "VEZIA W": "Vezia Ovest",
-        "CIRCONVAL. BELLINZONA (CAS)": "Bellinzona (C)"
-      };
-
-
-      const monthIndexes = {
-       1 : "January", 
-       2 : "February",
-       3 : "March",
-       4 : "April",
-       5 : "March",
-       6 : "June",
-       7 : "July",
-       8 : "August",
-       9 : "September",
-       10 : "October",
-       11 : "November",
-       12 : "December",
-       0 : "Year mean"
-      }
-
-      function update(year) {
-
-        const duration = 150;
-
-        const interpolVal = (Math.ceil(year) - year);       
-        console.log(year,interpolVal); 
-            
-        const yearData = tiData.map((d) => ({
-          station: d.station,
-          prevValue: d.yearMeans.find((y) => y.year === year)?.value || 0,
-          nextValue: d.yearMeans.find((y) => y.year === Math.floor(year+1))?.value || 0,
-          value: (d.yearMeans.find((y) => y.year === Math.floor(year+1))?.value || 0)*(interpolVal) + (d.yearMeans.find((y) => y.year === Math.round(year))?.value || 0)*(1-interpolVal)
-        }));
-
-
-        yearData.sort((a, b) => b.value - a.value);
-        const topStations = yearData.slice(0, 6);
-
-        xScale.domain([0, d3.max(topStations, (d) => d.value)]);
-        yScale.domain(topStations.map((d) => d.station));
-
-        xAxisGroup.transition().duration(duration)
-          .call(d3.axisBottom(xScale))
-          .selectAll("text")
-          .style("font-family", "Arial")
-          .style("font-weight", "bold")
-          .style("fill", "white")
-          .style("font-size", "15");
-        const yAxis = d3.axisLeft(yScale).tickFormat(d => stationNames[d] || d);
-        yAxisGroup.transition().duration(duration)
-          .call(yAxis)
-          .selectAll("text")
-          .style("font-family", "Arial")
-          .style("font-size", "16px")
-          .style("font-weight", "bold")
-          .style("fill", "white");
-
-        const totalValue = d3.sum(topStations, (d) => d.value);
-        yearText.transition().duration(duration).text(Math.round(year));
-        totalText.transition().duration(duration).text(`Total: ${totalValue.toFixed(0)}`);
-
-        const bars = barsGroup.selectAll(".bar").data(topStations, (d) => d.station);
-        const texts = barsGroup.selectAll(".bar-text").data(topStations, (d) => d.station);
-
-
-        bars.exit()
-          .transition()
-          .duration(duration)
-          .attr("y", innerHeight + 50)
-          .remove();
-
-        bars.transition().duration(duration)
-          .attr("x", 0)
-          .attr("y", (d) => yScale(d.station))
-          .attr("width", (d) => xScale(d.value))
-          .attr("height", yScale.bandwidth())
-          .attr("fill", (d, i) => colorScale(i / 5))
-          .attr("rx", 5);
-
-        bars.enter()
-          .append("rect")
-          .attr("class", "bar")
-          .attr("x", 0)
-          .attr("y", innerHeight + 50)
-          .attr("width", (d) => xScale(d.value))
-          .attr("height", yScale.bandwidth())
-          .attr("fill", (d, i) => colorScale(i / 5))
-          .transition()
-          .duration(duration)
-          .attr("rx", 5)
-          .attr("y", (d) => yScale(d.station));
-
-        barsGroup.lower();
-
-        texts.exit()
-          .transition()
-          .duration(duration)
-          .attr("y", innerHeight + 50)
-          .remove();
-
-        texts.transition().duration(duration)
-          .attr("x", (d) => xScale(d.value) - 70)
-          .style("font-size", "20")
-          .attr("y", (d) => yScale(d.station) + yScale.bandwidth() / 2 + 5)
-          .text((d) => Math.round(d.value));
-
-        texts.enter()
-          .append("text")
-          .style("font-size", "20")
-          .attr("class", "bar-text")
-          .attr("x", (d) => xScale(Math.round(d.value) - 70))
-          .attr("y", innerHeight + 50)
-          .text((d) => Math.round(d.value))
-          .transition()
-          .duration(duration)
-          .attr("y", (d) => yScale(d.station) + yScale.bandwidth() / 2 + 5);
-      }
-
-      function animateBars(targetYear) {
-        //const yearSequence = d3.range(currentYear, targetYear + (targetYear > currentYear ? 1 : -1), targetYear > currentYear ? 1 : -1);
-        //let index = 0;
-
-        /*
-        const interval = setInterval(() => {
-          update(yearSequence[index]);
-          index++;
-
-          if (index === yearSequence.length) {
-            clearInterval(interval);
-            currentYear = targetYear;
-          }
-        }, 50);
-        */
-       currentYear = targetYear;
-       update(currentYear);
-      }
-
-      const slider = document.getElementById('year-slider');
-      
-      noUiSlider.create(slider, {
-        start: [2003],
-        connect: true,
-        range: {
-          'min': 2003,
-          'max': 2023
-        },
-        step: 0.0,
-        pips: {
-          mode: 'steps',
-          density: 5,
-        },
-        format: {
-          to: function (value) {
-            return value;
-          },
-          from: function (value) {
-            return value;
-          }
-        }        
-      });
-
-      var activePips = [null, null];  
-
-      slider.noUiSlider.on('update', function (values, handle) {
-        const year = values[handle];
-        animateBars(year);
-        d3.select("#year-display").text(Math.round(year));
-        if (activePips[handle]) {
-        activePips[handle].classList.remove('active-pip');
-        }
-
-        var dataValue = Math.round(values[handle]);
-
-        activePips[handle] = slider.querySelector('.noUi-value[data-value="' + dataValue + '"]');
-
-        if (activePips[handle]) {
-            activePips[handle].classList.add('active-pip');
-        }
-      });
-
-      slider.noUiSlider.on('set', function() {
-        const year = slider.noUiSlider.get();
-      });
-
-      d3.select("#play-button").on("click", function () {
-        playing = !playing;
-
-        if (playing) {
-          d3.select("#play-button").classed("play", true).classed("pause", false);
-          interval = setInterval(() => {
-            if (currentYear >= 2023) {
-              clearInterval(interval);
-              d3.select("#play-button").classed("play", false).classed("pause", true);
-              playing = false;
-              return;
-            }
-
-            currentYear+=0.025;
-            slider.noUiSlider.set(currentYear);
-            d3.select("#year-display").text(Math.round(currentYear));
-          }, 50);
-        } else {
-          clearInterval(interval);
-          d3.select("#play-button").classed("play", false).classed("pause", true);
-        }
-        
-      });
-      update(currentYear);
-    });
+});
 
 
 </script>
