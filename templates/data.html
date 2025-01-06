@@ -363,6 +363,19 @@
 			font-size: 20px;
 		}
 
+    #map-container-2 {
+      width: 60%;
+      height: 80vh;
+      margin: auto;
+      border: 2px solid #333;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+      border-radius: 15px;
+    }
+    #slider-container-2 {
+      width: 60%;
+      margin: 40px auto;
+    }
+
 		@-webkit-keyframes pulsate {
 			0% {
 				
@@ -394,13 +407,17 @@
       }
 
       #map-container {
-        height: 500px;
+        height: 400px;
         overflow: hidden;
         transition: width 0.5s ease-in-out;
         border-radius: 10px;
+        margin-right: -80px;
+        margin-left: 150px;
+        width: 500px;
       }
 
       #chart-container {
+        margin-top: 50px;
         position: relative;
         transition: margin-left 0.5s ease-in-out, width 0.5s ease-in-out, transform 0.5s ease-in-out;
       }
@@ -512,11 +529,20 @@
 		<div class="descriptions-title">Animation</div>	
 		<div class="descriptions-text">In this animation we will explore the traffic in the last 60 years in Switzerland</div>		
 	</div>
-    <div class="video-container">
-        <video id="customVideo" controls muted loop>
+    <div class="video-container" style="width: 90%; overflow: visible">
+        <video style="overflow:visible;width: 90%" id="customVideo" controls muted loop>
             <source src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/video.mp4" type="video/mp4">
         </video>
     </div>
+
+    <div class="descriptions" style="margin-top: -150px">
+      <div class="descriptions-title">Graph</div>	
+      <div class="descriptions-text">Graph of the animation</div>		
+    </div>
+
+<div class="tooltip" id="tooltip"></div>
+<svg id="svg3" width="1300" height="500"></svg>
+
 
 	
 	
@@ -525,28 +551,29 @@
     </div>
 
 
-    <div class="descriptions">
+    <div class="descriptions" style="margin-bottom: -150px">
         <div class="descriptions-title">Worse places in Ticino</div>
         <div class ="descriptions-text">Top 6 most busy roads</div>		
     </div>
 
     
     <div id="main-container">
-      <div id="map-container" style="width: 500px;"></div>
+      <div id="map-container"></div>
       <div id="chart-container">
         <svg id="svg1" width="1300" height="500"></svg>
-        <div style="display: flex; align-items: center; width: 1100px; margin-top: -15px; margin-left: 100px;">
-          
-          <button class="map-button" id="toggle-map-button" style="z-index: 10000; margin-right: 10px;">
-                <img src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/map-icon.png" type="image/png"  style="width: 40px; height: 40px;">
-              </button>
-          <button id="play-button" class="pause" style="z-index: 10000; margin-right: 50px;"></button>
-          
-          <div id="year-slider" style="flex-grow: 1;"></div>
-        </div>
-        <span id="year-display" style="color: transparent">2003</span>
+        
       </div>
     </div>
+    <div style="display: flex; align-items: center; width: 1400px; margin-top: -220px; margin-left: 0;">
+          
+      <button class="map-button" id="toggle-map-button" style="z-index: 10000; margin-right: 10px;">
+            <img src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/map-icon.png" type="image/png"  style="width: 40px; height: 40px;">
+          </button>
+      <button id="play-button" class="pause" style="z-index: 10000; margin-right: 50px;"></button>
+      
+      <div id="year-slider" style="flex-grow: 1;"></div>
+    </div>
+    <span id="year-display" style="color: transparent">2003</span>
 
   <div class="content">
     <h1></h1>
@@ -557,9 +584,22 @@
   <div class="descriptions-title">Traffic in Ticino</div>
   <div class ="descriptions-text">How has traffic changed in Ticino?</div>		
 </div>
-
 <div class="tooltip" id="tooltip"></div>
   <svg id="svg2" width="1300" height="500"></svg>
+
+  <div class="descriptions">    
+    <div class="descriptions-title">Monthly pattern</div>
+    <div class ="descriptions-text">2023</div>		
+  </div>
+  <svg id="svg4" width="1300" height="500"></svg>
+  <button id="toggleButton" style="margin-top:-50px">Mean / Top 6</button>
+
+  <div class="descriptions">
+    <div class="descriptions-title">Real Time Traffic Speed</div>
+    <div class ="descriptions-text">This map shows the average traffic speed for all main roads in Ticino</div>		
+  </div>
+  <div id="map-container-2"></div>
+  <div id="slider-container-2"></div>
 
 </body>
 </html>
@@ -786,7 +826,7 @@ const mapContainer = document.getElementById('map-container');
           map.remove();
         }
         map = L.map(mapContainer).setView([46.1511, 8.886], 10);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
         }).addTo(map);
       }
       initializeMap();
@@ -820,21 +860,23 @@ const mapContainer = document.getElementById('map-container');
   filteredData.sort((a, b) => b.value - a.value);
 
   const top6Stations = filteredData.slice(0, 6);
-
+  let i = 0;
   filteredData.forEach((d) => {
     const stationName = d.station;
     const value = d.value;
     const coordinates = stationCoordinates[stationName];
 
     if (coordinates) {
-      const radius = Math.max(5, Math.min(30, value / 10000));
+      const radius = Math.max(5, value / 7500);
 
       let color;
       if (top6Stations.some(station => station.station === stationName)) {
-        color = colorScale(value / d3.max(filteredData, (d) => d.value));
+        color = colorScale(i/5);
+
       } else {
-        color = '#808080';
+        color = '#9fa8b5';
       }
+      i+=1;
 
       const circle = L.circleMarker([coordinates.lat, coordinates.lon], {
         radius: radius,
@@ -869,7 +911,14 @@ const mapContainer = document.getElementById('map-container');
           range: {
             'min': 2003,
             '10%': 2005,
-            '50%': 2010,
+            '20%': 2007,
+            '30%': 2009,
+            '40%': 2011,
+            '50%': 2013,
+            '60%': 2015,
+            '70%': 2017,
+            '80%': 2019,
+            '90%': 2021,
             'max': 2023
           },
           step: 0.0,
@@ -929,7 +978,7 @@ const mapContainer = document.getElementById('map-container');
       });
 
 
-    //LINE
+    //LINE 1
     const svg2 = d3.select("#svg2");
 const width2 = +svg2.attr("width");
 const height2 = +svg2.attr("height");
@@ -966,7 +1015,8 @@ const tooltip2 = d3.select("#tooltip");
 
 let data2 = [];
 
-d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/final_dataset.csv").then(rawData => {
+d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/ticino_stations.csv").then(rawData => {
+  console.log(rawData);
   data2 = rawData.filter(d => d.Canton === "TI").map(d => {
     return Object.entries(d).filter(([key]) => key.startsWith("Year mean")).map(([key, value]) => {
       const year = +key.split("_")[1];
@@ -975,9 +1025,12 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
   });
 
   const averages2 = [];
-  for (let i = 2003; i <= 2023; i++) {
+  for (let i = 1995; i <= 2023; i++) {
     const yearData2 = data2.map(d => d.find(e => e.year === i)?.value || 0);
-    averages2.push({ year: i, value: d3.mean(yearData2) });
+    const meanValue = d3.mean(yearData2);
+    if (!isNaN(meanValue) && meanValue != 0) {
+      averages2.push({ year: i, value: meanValue });
+    }
   }
 
   xScale2.domain(d3.extent(averages2, d => d.year));
@@ -1060,6 +1113,474 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
 
   observer.observe(svg2.node());
 });
+
+
+//LINE 2
+
+const svg3 = d3.select("#svg3");
+const width3 = +svg3.attr("width");
+const height3 = +svg3.attr("height");
+
+const margin3 = { top: 20, right: 100, bottom: 80, left: 100 };
+const innerWidth3 = width3 - margin3.left - margin3.right;
+const innerHeight3 = height3 - margin3.top - margin3.bottom;
+
+const g3 = svg3.append("g").attr("transform", `translate(${margin3.left},${margin3.top})`);
+const xAxisGroup3 = g3.append("g").attr("transform", `translate(0,${innerHeight3})`);
+const yAxisGroup3 = g3.append("g");
+
+g3.append("rect")
+  .attr("class", "x-axis-background")
+  .attr("x", 0)
+  .attr("y", innerHeight3)
+  .attr("width", innerWidth3)
+  .attr("height", height3 - innerHeight3)
+  .lower();
+
+const color3 = "#d18400";
+
+const xScale3 = d3.scaleLinear().range([0, innerWidth3]);
+const yScale3 = d3.scaleLinear().range([innerHeight3, 0]);
+
+const lineGenerator3 = d3.line()
+  .x(d => xScale3(d.year))
+  .y(d => yScale3(d.mean))
+  .curve(d3.curveMonotoneX);
+
+const pointRadius3 = 4;
+
+const tooltip3 = d3.select("#tooltip");
+
+let data3 = [];
+
+d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/total_year_means.csv").then(rawData => {
+  data3 = rawData.map(d => ({
+    year: +d.Year,
+    mean: +d.Mean
+  }));
+
+  xScale3.domain(d3.extent(data3, d => d.year));
+  yScale3.domain([0, d3.max(data3, d => d.mean)]);
+
+  const xAxis3 = d3.axisBottom(xScale3).ticks(10).tickFormat(d3.format("d"));
+  xAxisGroup3.call(xAxis3).selectAll("text")
+    .style("fill", "white")
+    .style("font-size", "14px")
+    .style("font-family", "Helvetica");
+
+  const yAxis3 = d3.axisLeft(yScale3);
+  yAxisGroup3.call(yAxis3).selectAll("text")
+    .style("fill", "white")
+    .style("font-size", "14px")
+    .style("font-family", "Helvetica");
+
+  const path3 = g3.append("path")
+    .datum(data3)
+    .attr("class", "line")
+    .attr("d", lineGenerator3)
+    .attr("stroke", color3)
+    .attr("opacity", 0);
+
+  const points3 = g3.selectAll(".point")
+    .data(data3)
+    .enter().append("circle")
+    .attr("class", "point")
+    .attr("cx", d => xScale3(d.year))
+    .attr("cy", d => yScale3(d.mean))
+    .attr("r", 0)
+    .attr("fill", color3)
+    .on("mouseover", (event, d) => {
+      d3.select(event.target)
+        .transition()
+        .duration(200)
+        .attr("r", pointRadius3 * 2);
+
+      tooltip3.style("visibility", "visible")
+        .text(`Year: ${d.year}, Mean: ${d.mean.toFixed(0)}`)
+        .style("top", `${event.pageY - 10}px`)
+        .style("left", `${event.pageX + 10}px`);
+    })
+    .on("mouseout", (event) => {
+      d3.select(event.target)
+        .transition()
+        .duration(200)
+        .attr("r", pointRadius3);
+
+      tooltip3.style("visibility", "hidden");
+    });
+
+  const animateLineAndPoints = () => {
+    path3.transition()
+      .duration(3000)
+      .attr("opacity", 1);
+
+    points3.transition()
+      .delay((d, i) => i * 30)
+      .duration(500)
+      .attr("r", pointRadius3);
+  };
+
+  const hideLineAndPoints = () => {
+    path3.transition().duration(500).attr("opacity", 0);
+    points3.transition().duration(500).attr("r", 0);
+  };
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateLineAndPoints();
+      } else {
+        hideLineAndPoints();
+      }
+    });
+  }, {
+    threshold: 0.5
+  });
+
+  observer.observe(svg3.node());
+});
+
+
+// LINE 3
+
+const svg4 = d3.select("#svg4");
+const width4 = +svg4.attr("width");
+const height4 = +svg4.attr("height");
+
+const margin4 = { top: 20, right: 100, bottom: 80, left: 100 };
+const innerWidth4 = width4 - margin4.left - margin4.right;
+const innerHeight4 = height4 - margin4.top - margin4.bottom;
+
+const g4 = svg4.append("g").attr("transform", `translate(${margin4.left},${margin4.top})`);
+const xAxisGroup4 = g4.append("g").attr("transform", `translate(0,${innerHeight4})`);
+const yAxisGroup4 = g4.append("g");
+
+const colorScale4 = d3.scaleOrdinal(d3.schemeCategory10);
+
+const xScale4 = d3.scalePoint().range([0, innerWidth4]);
+const yScale4 = d3.scaleLinear().range([innerHeight4, 0]).domain([0, 100000]);
+
+const lineGenerator4 = d3.line()
+  .x(d => xScale4(d.month))
+  .y(d => yScale4(d.value))
+  .curve(d3.curveMonotoneX);
+
+const tooltip4 = d3.select("#tooltip");
+
+let data4 = [];
+let aggregatedData = [];
+let topStations = [];
+let viewMode = "average";
+const pointRadius4 = 4;
+
+d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/2023_ticino.csv").then(rawData => {
+  const months = ["January", "February", "March", "April", "Mai", "June", "July", "August", "September", "October", "November", "December"];
+
+  data4 = rawData.map(d => {
+    return months.map(month => ({
+      station: d["Measuring station"],
+      month,
+      value: +d[month]
+    }));
+  }).flat();
+
+  aggregatedData = months.map(month => {
+    const monthlyValues = data4.filter(d => d.month === month).map(d => d.value);
+    return {
+      month,
+      value: d3.mean(monthlyValues)
+    };
+  });
+
+  const stationAverages = d3.rollup(data4, 
+    values => d3.mean(values, v => v.value), 
+    d => d.station
+  );
+
+  topStations = Array.from(stationAverages.entries())
+    .sort((a, b) => d3.descending(a[1], b[1]))
+    .slice(0, 6)
+    .map(d => d[0]);
+
+  xScale4.domain(months);
+
+  const xAxis4 = d3.axisBottom(xScale4);
+  xAxisGroup4.call(xAxis4).selectAll("text")
+    .style("fill", "white")
+    .style("font-size", "14px")
+    .style("font-family", "Helvetica");
+
+  const yAxis4 = d3.axisLeft(yScale4);
+  yAxisGroup4.call(yAxis4).selectAll("text")
+    .style("fill", "white")
+    .style("font-size", "14px")
+    .style("font-family", "Helvetica");
+
+  const updateChart = () => {
+    g4.selectAll(".line").remove();
+    g4.selectAll(".point").remove();
+
+    let dataToRender = viewMode === "average" 
+      ? [aggregatedData] 
+      : d3.groups(data4.filter(d => topStations.includes(d.station)), d => d.station).map(([station, values]) => values);
+
+    g4.selectAll(".line")
+      .data(dataToRender, d => (viewMode === "average" ? "average" : d[0].station))
+      .enter()
+      .append("path")
+      .attr("class", "line")
+      .attr("d", lineGenerator4)
+      .attr("stroke", (d, i) => viewMode === "average" ? "#d18400" : colorScale4(d[0].station))
+      .attr("fill", "none")
+      .attr("stroke-width", 2)
+      .attr("opacity", 0)
+      .transition()
+      .duration(3000)
+      .attr("opacity", 1);
+
+    g4.selectAll(".point-group")
+      .data(dataToRender)
+      .join(
+        enter => enter.append("g").attr("class", "point-group")
+      )
+      .selectAll(".point")
+      .data(d => d)
+      .join(
+        enter => enter.append("circle")
+          .attr("class", "point")
+          .attr("cx", d => xScale4(d.month))
+          .attr("cy", d => yScale4(d.value))
+          .attr("r", 0)
+          .attr("fill", (d, i) => viewMode === "average" ? "#d18400" : colorScale4(d.station))
+          .style("z-index", 1000)
+          .on("mouseover", (event, d) => {
+            tooltip4.style("visibility", "visible")
+              .text(viewMode === "average"
+                ? `Month: ${d.month}, Mean: ${d.value.toFixed(0)}`
+                : `Station: ${d.station}, Month: ${d.month}, Value: ${d.value}`)
+              .style("top", `${event.pageY - 10}px`)
+              .style("left", `${event.pageX + 10}px`);
+          })
+          .on("mouseout", () => tooltip4.style("visibility", "hidden"))
+          .transition()
+          .delay((d, i) => i * 30)
+          .duration(500)
+          .attr("r", pointRadius4)
+      );
+  };
+
+  d3.select("#toggleButton").on("click", () => {
+    viewMode = viewMode === "average" ? "stations" : "average";
+    updateChart();
+  });
+
+  const animateOnViewport = (entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        updateChart();
+      } else {
+        g4.selectAll(".line, .point").remove();
+      }
+    });
+  };
+
+  const observer = new IntersectionObserver(animateOnViewport, { threshold: 0.5 });
+  observer.observe(svg4.node());
+
+  updateChart();
+});
+
+
+
+
+// MAPPA
+
+
+const mapDiv = document.getElementById("map-container-2");
+const sliderDiv = document.getElementById("slider-container-2");
+
+const leafletMap = L.map(mapDiv).setView([46.2, 8.8], 10);
+
+L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+}).addTo(leafletMap);
+
+const sliderElement = document.createElement("div");
+sliderDiv.appendChild(sliderElement);
+
+noUiSlider.create(sliderElement, {
+    start: [48],
+    range: {
+        min: 0,
+        max: 48
+    },
+    step: 0.5,
+    tooltips: true,
+    format: {
+        to: (value) => {
+            const now = new Date();
+            const hoursAgo = 48 - value;
+            const targetDate = new Date(now);
+            targetDate.setHours(now.getHours() - hoursAgo);
+
+            const dayOptions = {
+                weekday: 'long'
+            };
+            const dayName = targetDate.toLocaleDateString('en-US', dayOptions);
+
+            let hour = targetDate.getHours();
+            let minute = targetDate.getMinutes();
+
+            minute = Math.floor(minute / 30) * 30;
+
+            if (minute === 0 && targetDate.getMinutes() >= 30) {
+                hour += 1;
+            }
+
+            const formattedTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+            const timeOffset = `${-Math.floor(hoursAgo)}:${String(Math.round((value % 1) * 60)).padStart(2, '0')}`;
+
+            return `${dayName}, ${formattedTime} (${timeOffset}h)`;
+        },
+        from: (value) => parseFloat(value),
+    },
+});
+
+let activePolylines = [];
+let trafficData = [];
+let lastActiveTimeIndex = 0;
+let lastSliderUpdateTimestamp = 0;
+const sliderUpdateDelay = 10;
+
+async function fetchTrafficData(csvUrl) {
+    const response = await fetch(csvUrl);
+    if (!response.ok) throw new Error(`Failed to fetch ${csvUrl}`);
+    const csvContent = await response.text();
+    const parsedData = csvContent.split("\n").slice(1).filter(Boolean).map((line) => {
+        const [locationData, maxSpeed, ...speedValues] = line.split(";");
+        let cleanLocationData = locationData.trim();
+        cleanLocationData = cleanLocationData.replace(/\(/g, '[').replace(/\)/g, ']');
+        cleanLocationData = cleanLocationData.replace(/(\d),(\d)/g, '$1.$2');
+        cleanLocationData = cleanLocationData.replace(/[\r\n]/g, '');
+        let parsedCoordinates;
+        try {
+            parsedCoordinates = JSON.parse(cleanLocationData);
+        } catch (error) {
+            parsedCoordinates = [];
+        }
+        return {
+            coordinates: parsedCoordinates,
+            maxSpeed: +maxSpeed,
+            speeds: speedValues.map(Number)
+        };
+    });
+    return parsedData;
+}
+
+function renderTrafficDataOnMap(data, timeIndex) {
+    data.forEach(({
+        coordinates,
+        maxSpeed,
+        speeds
+    }, i) => {
+        if (coordinates && coordinates.length > 1) {
+            const latLngCoordinates = coordinates.map(([lng, lat]) => [lat, lng]);
+            const currentSpeed = speeds[timeIndex];
+            const speedRatio = currentSpeed / maxSpeed;
+            let lineColor = "red";
+            if (speedRatio > 0.8) {
+                lineColor = "green";
+            } else if (speedRatio > 0.5) {
+                lineColor = "orange";
+            }
+
+            if (activePolylines[i]) {
+                const polyline = activePolylines[i];
+                polyline.setStyle({
+                    color: lineColor,
+                    opacity: 0.7
+                });
+                const tooltip = polyline.getTooltip();
+                if (tooltip) {
+                    tooltip.setContent(`Current speed: ${currentSpeed} km/h<br>Speed limit: ${maxSpeed} km/h`);
+                }
+            } else {
+                if (leafletMap.getBounds().contains(latLngCoordinates[0])) {
+                    const polyline = L.polyline(latLngCoordinates, {
+                        color: lineColor,
+                        weight: 5,
+                        opacity: 0.7
+                    }).addTo(leafletMap);
+                    polyline.on('mouseover', (e) => {
+                        const hoverLocation = e.latlng || e.latlngs[0];
+                        const hoverContent = `Current speed: ${currentSpeed} km/h<br>Speed limit: ${maxSpeed} km/h`;
+                        e.target.bindTooltip(hoverContent).openTooltip(hoverLocation);
+                    });
+
+                    polyline.on('mouseout', (e) => {
+                        e.target.closeTooltip();
+                    });
+
+                    activePolylines[i] = polyline;
+                }
+            }
+        }
+    });
+}
+
+function formatDateForFileName(daysAgo) {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - daysAgo);
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, "0");
+    const day = String(targetDate.getDate()).padStart(2, "0");
+    return `${day}_${month}_${year}`;
+}
+
+function calculateTimeIndex(sliderValue) {
+    const hoursAgo = 48 + sliderValue;
+    const now = new Date();
+    const targetTime = new Date(now);
+    targetTime.setHours(now.getHours() - hoursAgo);
+    const hour = targetTime.getHours();
+    const minute = targetTime.getMinutes();
+    const timeLabels = [
+        "00_30", "01_00", "02_30", "03_00", "03_30", "04_00", "05_30", "06_00", "06_30", "08_00",
+        "08_30", "10_00", "10_30", "12_00", "12_30", "13_00", "14_30", "16_00", "17_30", "19_00",
+        "20_30", "22_00", "23_30"
+    ];
+    const currentTimeLabel = `${String(hour).padStart(2, '0')}_${String(Math.floor(minute / 30) * 30).padStart(2, '0')}`;
+    const matchedIndex = timeLabels.indexOf(currentTimeLabel);
+    return matchedIndex === -1 ? lastActiveTimeIndex : matchedIndex;
+}
+
+async function initializeTrafficMap() {
+    const pastDates = [0, 1, 2].map((daysAgo) => formatDateForFileName(daysAgo));
+    const dataUrls = pastDates.map(
+        (date) =>
+        `https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/his_data/t_data_${date}.csv`
+    );
+    try {
+        const csvDatasets = await Promise.all(dataUrls.map(fetchTrafficData));
+        trafficData = csvDatasets.flat();
+        renderTrafficDataOnMap(trafficData, 0);
+
+        sliderElement.noUiSlider.on("slide", ([value]) => {
+            const currentTimestamp = Date.now();
+            if (currentTimestamp - lastSliderUpdateTimestamp > sliderUpdateDelay) {
+                const numericSliderValue = parseFloat(value.match(/-?\d+(\.\d+)?/)[0]);
+                const timeIndex = calculateTimeIndex(parseInt(numericSliderValue));
+                renderTrafficDataOnMap(trafficData, timeIndex);
+                lastSliderUpdateTimestamp = currentTimestamp;
+                lastActiveTimeIndex = timeIndex;
+            }
+        });
+    } catch (error) {
+        console.error("Error loading traffic data:", error);
+    }
+}
+
+initializeTrafficMap();
 
 
 
