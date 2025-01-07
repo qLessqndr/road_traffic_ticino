@@ -372,7 +372,7 @@
       border-radius: 15px;
     }
     #slider-container-2 {
-      width: 60%;
+      width: 100%;
       margin: 40px auto;
     }
 
@@ -401,23 +401,29 @@
         justify-content: center;
         align-items: center;
         width: 100%;
-        height: 100vh;
+        height: 50vh;
         transition: all 0.5s ease;
-        margin-top: -100px;
+        margin-top: 11vh;
       }
 
       #map-container {
-        height: 400px;
+        transform-origin: 100% 0%;
+        height: 85%;
         overflow: hidden;
         transition: width 0.5s ease-in-out;
         border-radius: 10px;
-        margin-right: -80px;
-        margin-left: 150px;
-        width: 500px;
+        margin-right: -7%;
+        margin-top: 3%;
+        width: 20%;
       }
 
       #chart-container {
-        margin-top: 50px;
+        transform-origin: 100% 50%;
+        z-index: 1000;
+        width: 80%;
+        height: 100%;
+        margin-top: 5%;
+        margin-left: -7%;
         position: relative;
         transition: margin-left 0.5s ease-in-out, width 0.5s ease-in-out, transform 0.5s ease-in-out;
       }
@@ -425,6 +431,20 @@
       #chart-container.stretch {
         transform: scaleX(0.85);
       }
+
+      .svg-container {
+        width: 70vw;
+        height: 55vh;
+      }
+
+      #date-picker {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .date-button {
+
+    }
 
         @font-face {
             font-family: Helvetica;
@@ -541,7 +561,9 @@
     </div>
 
 <div class="tooltip" id="tooltip"></div>
-<svg id="svg3" width="1300" height="500"></svg>
+
+<div class="svg-container" id="svg-container3">
+<svg id="svg3" width="100%" height="100%"></svg></div>
 
 
 	
@@ -560,11 +582,11 @@
     <div id="main-container">
       <div id="map-container"></div>
       <div id="chart-container">
-        <svg id="svg1" width="1300" height="500"></svg>
+        <svg id="svg1" width="100%" height="100%"></svg>
         
       </div>
     </div>
-    <div style="display: flex; align-items: center; width: 1400px; margin-top: -220px; margin-left: 0;">
+    <div style="display: flex; align-items: center; width: 75%; margin-top: 5%; margin-left: 0;">
           
       <button class="map-button" id="toggle-map-button" style="z-index: 10000; margin-right: 10px;">
             <img src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/map-icon.png" type="image/png"  style="width: 40px; height: 40px;">
@@ -585,21 +607,30 @@
   <div class ="descriptions-text">How has traffic changed in Ticino?</div>		
 </div>
 <div class="tooltip" id="tooltip"></div>
-  <svg id="svg2" width="1300" height="500"></svg>
+
+<div class="svg-container" id="svg-container2">
+  <svg id="svg2" width="100%" height="100%"></svg>
+</div>
 
   <div class="descriptions">    
     <div class="descriptions-title">Monthly pattern</div>
     <div class ="descriptions-text">2023</div>		
   </div>
-  <svg id="svg4" width="1300" height="500"></svg>
+  <div class="svg-container" id="svg-container4">
+  <svg id="svg4" width="100%" height="100%"></svg>
+  </div>
   <button id="toggleButton" style="margin-top:-50px">Mean / Top 6</button>
-
   <div class="descriptions">
     <div class="descriptions-title">Real Time Traffic Speed</div>
     <div class ="descriptions-text">This map shows the average traffic speed for all main roads in Ticino</div>		
   </div>
   <div id="map-container-2"></div>
-  <div id="slider-container-2"></div>
+  
+  <div style="display: flex; align-items: center; width: 60%; margin-top: 5%; margin-left: 0;">    
+    <button id="show-date-picker" class="pause" style="z-index: 10000; margin-right: 50px;"></button>
+
+  <input type="date" id="date-picker" max="" />
+  <div id="slider-container-2"></div></div>
 
 </body>
 </html>
@@ -611,8 +642,8 @@ const mapContainer = document.getElementById('map-container');
       let mapVisible = false;
       let map;
       const svg = d3.select("#svg1");
-      const width = +svg.attr("width");
-      const height = +svg.attr("height");
+      const height = +chartContainer.clientHeight;
+      const width = chartContainer.clientWidth;
       const margin = {
         top: 20,
         right: 100,
@@ -833,16 +864,19 @@ const mapContainer = document.getElementById('map-container');
       chartContainer.classList.remove('stretch');
       mapContainer.style.width = '0';
       mainContainer.classList.remove('show-map');
+      chartContainer.style.marginLeft = '4%';
 
       function toggleMap() {
         if (mapVisible) {
           chartContainer.classList.remove('stretch');
           mapContainer.style.width = '0';
           mainContainer.classList.remove('show-map');
+      chartContainer.style.marginLeft = '4%';
         } else {
           chartContainer.classList.add('stretch');
-          mapContainer.style.width = '500px';
+          mapContainer.style.width = '20%';
           mainContainer.classList.add('show-map');
+      chartContainer.style.marginLeft = '-7%';
         }
         mapVisible = !mapVisible;
         update(currentYear);
@@ -980,9 +1014,9 @@ const mapContainer = document.getElementById('map-container');
 
     //LINE 1
     const svg2 = d3.select("#svg2");
-const width2 = +svg2.attr("width");
-const height2 = +svg2.attr("height");
-
+const svg_cont1 = document.getElementById("svg-container2");
+const width2 = svg_cont1.clientWidth;
+const height2 = svg_cont1.clientHeight;
 const margin2 = { top: 20, right: 100, bottom: 80, left: 100 };
 const innerWidth2 = width2 - margin2.left - margin2.right;
 const innerHeight2 = height2 - margin2.top - margin2.bottom;
@@ -1118,8 +1152,9 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
 //LINE 2
 
 const svg3 = d3.select("#svg3");
-const width3 = +svg3.attr("width");
-const height3 = +svg3.attr("height");
+const container2 = document.getElementById("svg-container3");
+const width3 = container2.clientWidth;
+const height3 = container2.clientHeight;
 
 const margin3 = { top: 20, right: 100, bottom: 80, left: 100 };
 const innerWidth3 = width3 - margin3.left - margin3.right;
@@ -1244,8 +1279,9 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
 // LINE 3
 
 const svg4 = d3.select("#svg4");
-const width4 = +svg4.attr("width");
-const height4 = +svg4.attr("height");
+const container3 = document.getElementById("svg-container4");
+const width4 = container3.clientWidth;
+const height4 = container3.clientHeight;
 
 const margin4 = { top: 20, right: 100, bottom: 80, left: 100 };
 const innerWidth4 = width4 - margin4.left - margin4.right;
@@ -1583,5 +1619,29 @@ async function initializeTrafficMap() {
 initializeTrafficMap();
 
 
+    const datePicker = document.getElementById('date-picker');
+    const showDatePickerButton = document.getElementById('show-date-picker');
+    const selectedDateDisplay = document.getElementById('selected-date');
+
+    const today = new Date().toISOString().split('T')[0];
+    datePicker.max = today;
+
+    showDatePickerButton.addEventListener('click', () => {
+      datePicker.style.display = 'block';
+      datePicker.focus();
+    });
+
+    datePicker.addEventListener('change', () => {
+      const selectedDate = datePicker.value;
+      initializeTrafficMap(selectedDate);
+    });
+
+    function updateSelectedDate(date) {
+      selectedDateDisplay.textContent = `Data selezionata: ${date}`;
+      console.log("Data scelta:", date);
+    }
+
+window.addEventListener('resize', () => {
+      location.reload(); });
 
 </script>
