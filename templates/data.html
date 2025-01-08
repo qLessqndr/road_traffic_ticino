@@ -442,9 +442,39 @@
       margin-top: 10px;
     }
 
-    .date-button {
+    .tooltip-container {
+      z-index: 100000;
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip-content {
+            display: none;
+            position: absolute;
+            top: 25px;
+            left: 0;
+            width: 300px;
+            padding: 15px;
+            background: #181818;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .tooltip-content.active {
+            display: block;
+        }
+        .tooltip-content p {
+            margin: 0;
+        }
 
-    }
+        .tooltip-link {
+            cursor: pointer;
+            color: #585858;
+            text-decoration: underline;
+        }
+        .tooltip-link:hover {
+            color: #ffffff;
+        }
 
         @font-face {
             font-family: Helvetica;
@@ -521,7 +551,7 @@
 				<ul>
 					<li><a href="frontend.html">Home</a></li>
 					<li><a href="data.html">Data</a></li>
-					<li><a href="#section2">Graphs</a></li>
+					<li><a href="#section2"></a></li>
 					<li><a href="about.html">About us</a></li>
 				</ul>
 			</nav>
@@ -550,7 +580,7 @@
 		<div class="descriptions-text">In this animation we will explore the traffic in the last 60 years in Switzerland</div>		
 	</div>
     <div class="video-container" style="width: 90%; overflow: visible">
-        <video style="overflow:visible;width: 90%" id="customVideo" controls muted loop>
+        <video style="overflow:visible;width: 90%; z-index: 10000" id="customVideo" controls muted loop>
             <source src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/video.mp4" type="video/mp4">
         </video>
     </div>
@@ -560,10 +590,18 @@
       <div class="descriptions-text">Graph of the animation</div>		
     </div>
 
+
 <div class="tooltip" id="tooltip"></div>
 
 <div class="svg-container" id="svg-container3">
 <svg id="svg3" width="100%" height="100%"></svg></div>
+<div class="tooltip-container">
+  <span class="tooltip-link">Visualization Protocol</span>
+  <div class="tooltip-content">
+      <p>Timestamp: 1965 - 2023</p>
+      <p></p>
+  </div>
+</div>
 
 
 	
@@ -596,6 +634,13 @@
       <div id="year-slider" style="flex-grow: 1;"></div>
     </div>
     <span id="year-display" style="color: transparent">2003</span>
+    <div class="tooltip-container">
+      <span class="tooltip-link">Visualization Protocol</span>
+      <div class="tooltip-content">
+          <p>Protocol</p>
+          <p></p>
+      </div>
+  </div>
 
   <div class="content">
     <h1></h1>
@@ -611,6 +656,13 @@
 <div class="svg-container" id="svg-container2">
   <svg id="svg2" width="100%" height="100%"></svg>
 </div>
+<div class="tooltip-container">
+  <span class="tooltip-link">Visualization Protocol</span>
+  <div class="tooltip-content">
+      <p>Protocol</p>
+      <p></p>
+  </div>
+</div>
 
   <div class="descriptions">    
     <div class="descriptions-title">Monthly pattern</div>
@@ -619,7 +671,20 @@
   <div class="svg-container" id="svg-container4">
   <svg id="svg4" width="100%" height="100%"></svg>
   </div>
-  <button id="toggleButton" style="margin-top:-50px">Mean / Top 6</button>
+
+  <div style="display: block; align-items: center; width: 75%; margin-top: 1%; margin-left: 50%; justify-content: space-between;">
+    
+    <button id="toggleButton" style="margin-right: 2%">Mean / Top 6</button>
+  <div class="tooltip-container">
+    <span class="tooltip-link">Visualization Protocol</span>
+    <div class="tooltip-content">
+        <p>Protocol</p>
+        <p></p>
+    </div>
+  </div>
+</div>
+
+  
   <div class="descriptions">
     <div class="descriptions-title">Real Time Traffic Speed</div>
     <div class ="descriptions-text">This map shows the average traffic speed for all main roads in Ticino</div>		
@@ -627,15 +692,45 @@
   <div id="map-container-2"></div>
   
   <div style="display: flex; align-items: center; width: 60%; margin-top: 5%; margin-left: 0;">    
-    <button id="show-date-picker" class="pause" style="z-index: 10000; margin-right: 50px;"></button>
 
-  <input type="date" id="date-picker" max="" />
+    <a href="https://ticinotraffic-1015398445346.europe-west8.run.app/map.html">Open Map</a>
+    <div class="tooltip-container">
+      <span class="tooltip-link">Visualization Protocol</span>
+      <div class="tooltip-content">
+          <p>Protocol</p>
+          <p></p>
+      </div>
+  </div>
+
   <div id="slider-container-2"></div></div>
 
 </body>
 </html>
 
 <script>
+
+
+document.addEventListener("DOMContentLoaded", () => {
+            const tooltipLinks = document.querySelectorAll(".tooltip-link");
+            const tooltips = document.querySelectorAll(".tooltip-content");
+
+            tooltipLinks.forEach((link, index) => {
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+
+                    tooltips.forEach((tooltip) => tooltip.classList.remove("active"));
+
+                    tooltips[index].classList.toggle("active");
+                });
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!e.target.closest(".tooltip-container")) {
+                    tooltips.forEach((tooltip) => tooltip.classList.remove("active"));
+                }
+            });
+        });
+
 const mapContainer = document.getElementById('map-container');
       const chartContainer = document.getElementById('chart-container');
       const mainContainer = document.getElementById('main-container');
@@ -1025,6 +1120,29 @@ const g2 = svg2.append("g").attr("transform", `translate(${margin2.left},${margi
 const xAxisGroup2 = g2.append("g").attr("transform", `translate(0,${innerHeight2})`);
 const yAxisGroup2 = g2.append("g");
 
+
+g2.append("text")
+  .attr("class", "x-axis-label")
+  .attr("x", innerWidth2 / 2)
+  .attr("y", innerHeight2 + 50)
+  .attr("text-anchor", "middle")
+  .style("fill", "white")
+  .style("font-size", "16px")
+  .style("font-family", "Helvetica")
+  .text("Year");
+
+g2.append("text")
+  .attr("class", "y-axis-label")
+  .attr("x", -innerHeight2 / 2)
+  .attr("y", -60)
+  .attr("transform", "rotate(-90)")
+  .attr("text-anchor", "middle")
+  .style("fill", "white")
+  .style("font-size", "16px")
+  .style("font-family", "Helvetica")
+  .text("Daily Vehicle Count");
+
+
 g2.append("rect")
   .attr("class", "x-axis-background")
   .attr("x", 0)
@@ -1164,6 +1282,29 @@ const g3 = svg3.append("g").attr("transform", `translate(${margin3.left},${margi
 const xAxisGroup3 = g3.append("g").attr("transform", `translate(0,${innerHeight3})`);
 const yAxisGroup3 = g3.append("g");
 
+
+g3.append("text")
+  .attr("class", "x-axis-label")
+  .attr("x", innerWidth2 / 2)
+  .attr("y", innerHeight2 + 50)
+  .attr("text-anchor", "middle")
+  .style("fill", "white")
+  .style("font-size", "16px")
+  .style("font-family", "Helvetica")
+  .text("Year");
+
+g3.append("text")
+  .attr("class", "y-axis-label")
+  .attr("x", -innerHeight2 / 2)
+  .attr("y", -60)
+  .attr("transform", "rotate(-90)")
+  .attr("text-anchor", "middle")
+  .style("fill", "white")
+  .style("font-size", "16px")
+  .style("font-family", "Helvetica")
+  .text("Daily Vehicle Count");
+
+
 g3.append("rect")
   .attr("class", "x-axis-background")
   .attr("x", 0)
@@ -1290,6 +1431,28 @@ const innerHeight4 = height4 - margin4.top - margin4.bottom;
 const g4 = svg4.append("g").attr("transform", `translate(${margin4.left},${margin4.top})`);
 const xAxisGroup4 = g4.append("g").attr("transform", `translate(0,${innerHeight4})`);
 const yAxisGroup4 = g4.append("g");
+
+g4.append("text")
+  .attr("class", "x-axis-label")
+  .attr("x", innerWidth2 / 2)
+  .attr("y", innerHeight2 + 50)
+  .attr("text-anchor", "middle")
+  .style("fill", "white")
+  .style("font-size", "16px")
+  .style("font-family", "Helvetica")
+  .text("Month");
+
+g4.append("text")
+  .attr("class", "y-axis-label")
+  .attr("x", -innerHeight2 / 2)
+  .attr("y", -60)
+  .attr("transform", "rotate(-90)")
+  .attr("text-anchor", "middle")
+  .style("fill", "white")
+  .style("font-size", "16px")
+  .style("font-family", "Helvetica")
+  .text("Daily Vehicle Count");
+
 
 const colorScale4 = d3.scaleOrdinal(d3.schemeCategory10);
 
