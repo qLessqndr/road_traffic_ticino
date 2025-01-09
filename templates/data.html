@@ -72,20 +72,20 @@
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 25px;
       color: white;
     }
 
     #play-button.play {
-      font-size: 20px;
+      font-size: 30px;
     }
 
     #play-button.pause::before {
-      content: ">";
+      content: "▶️";
     }
 
     #play-button.play::before {
-      content: "||";
+      content: "⏸️";
     }
 
     .bar:hover {
@@ -443,38 +443,82 @@
     }
 
     .tooltip-container {
-      z-index: 100000;
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip-content {
-            display: none;
-            position: absolute;
-            top: 25px;
-            left: 0;
-            width: 300px;
-            padding: 15px;
-            background: #181818;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-        .tooltip-content.active {
-            display: block;
-        }
-        .tooltip-content p {
-            margin: 0;
-        }
+    z-index: 100000;
+    position: relative;
+    display: inline-block;
+}
 
-        .tooltip-link {
-            cursor: pointer;
-            color: #585858;
-            text-decoration: underline;
-        }
-        .tooltip-link:hover {
-            color: #ffffff;
-        }
+.tooltip-content {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    padding: 15px;
+    background: #181818;
+    color: #ffffff;
+    border: none;
+    z-index: 1000;
+    box-shadow: none;
+}
+
+.tooltip-content.active {
+    display: block;
+}
+
+.tooltip-content p {
+    margin: 0;
+    font-size: 18px;
+}
+
+.tooltip-link {
+    cursor: pointer;
+    color: #585858;
+    text-decoration: underline;
+}
+
+.tooltip-link:hover {
+    color: #ffffff;
+}
+
+#date-picker-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 4%;
+}
+
+#date-picker {
+    display: block;
+    font-size: 20px;
+    padding: 10px 15px;
+    width: auto;
+    height: 4%;
+    border: 2px solid #444;
+    border-radius: 5px;
+    background-color: #1e1e1e;
+    color: #fff;
+    cursor: pointer;
+    transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+}
+
+#date-picker:hover {
+    background-color: #333;
+    border-color: #666;
+}
+
+#date-picker:focus {
+    border-color: #888;
+    outline: none;
+}
+
+#date-picker::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(1);
+}
+
+
 
         @font-face {
             font-family: Helvetica;
@@ -581,7 +625,7 @@
 	</div>
     <div class="video-container" style="width: 90%; overflow: visible">
         <video style="overflow:visible;width: 90%; z-index: 10000" id="customVideo" controls muted loop>
-            <source src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/templates/video.mp4" type="video/mp4">
+            <source src="https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/video_.mp4" type="video/mp4">
         </video>
     </div>
 
@@ -691,19 +735,20 @@
   </div>
   <div id="map-container-2"></div>
   
-  <div style="display: flex; align-items: center; width: 60%; margin-top: 5%; margin-left: 0;">    
-
-    <a href="https://ticinotraffic-1015398445346.europe-west8.run.app/map.html">Open Map</a>
-    <div class="tooltip-container">
-      <span class="tooltip-link">Visualization Protocol</span>
-      <div class="tooltip-content">
-          <p>Protocol</p>
-          <p></p>
-      </div>
+  <div style="display: flex; align-items: center; width: 60%; margin-top: 2%; margin-left: 0;">    
+    <div id="date-picker-container">
+      <input type="date" id="date-picker" />
   </div>
+  
 
-  <div id="slider-container-2"></div></div>
+  <div id="slider-container-2" style="margin-left: 4%"></div></div>
 
+  <div class="tooltip-container">
+    <span class="tooltip-link">Visualization Protocol</span>
+    <div class="tooltip-content">
+        <p>Protocol</p>
+        <p></p>
+    </div>
 </body>
 </html>
 
@@ -926,14 +971,79 @@ const mapContainer = document.getElementById('map-container');
           xAxisGroup.transition().duration(duration).call(d3.axisBottom(xScale)).selectAll("text").style("font-family", "Arial").style("font-weight", "bold").style("fill", "white").style("font-size", "15");
           const yAxis = d3.axisLeft(yScale).tickFormat(d => stationNames[d] || d);
           yAxisGroup.transition().duration(duration).call(yAxis).selectAll("text").style("font-family", "Arial").style("font-size", "16px").style("font-weight", "bold").style("fill", "white");
-          const totalValue = d3.sum(topStations, (d) => d.value);
+          const totalValue = d3.sum(yearData, (d) => d.value);
           yearText.transition().duration(duration).text(Math.round(year));
           totalText.transition().duration(duration).text(`Total: ${totalValue.toFixed(0)}`);
           const bars = barsGroup.selectAll(".bar").data(topStations, (d) => d.station);
           const texts = barsGroup.selectAll(".bar-text").data(topStations, (d) => d.station);
           bars.exit().transition().duration(duration).attr("y", innerHeight + 50).remove();
           bars.transition().duration(duration).attr("x", 0).attr("y", (d) => yScale(d.station)).attr("width", (d) => Math.max(0, xScale(d.value))).attr("height", yScale.bandwidth()).attr("fill", (d, i) => colorScale(i / 5)).attr("rx", 5);
-          bars.enter().append("rect").attr("class", "bar").attr("x", 0).attr("y", innerHeight + 50).attr("width", (d) => Math.max(0, xScale(d.value))).attr("height", yScale.bandwidth()).attr("fill", (d, i) => colorScale(i / 5)).transition().duration(duration).attr("rx", 5).attr("y", (d) => yScale(d.station));
+          
+          bars.enter()
+  .append("rect")
+  .attr("class", "bar")
+  .attr("x", 0)
+  .attr("y", innerHeight + 50)
+  .attr("width", (d) => Math.max(0, xScale(d.value)))
+  .attr("height", yScale.bandwidth())
+  .attr("fill", (d, i) => colorScale(i / 5))
+  .on("mouseover", function(event, d) {
+    const coordinates = stationCoordinates[d.station];
+
+    const tooltip = g.append("text")
+      .attr("class", "bar-tooltip")
+      .attr("x", xScale(d.value) + 10)
+      .attr("y", yScale(d.station) + yScale.bandwidth() / 2 + 5)
+      .style("font-size", "14px")
+      .style("fill", "white")
+      .style("font-family", "Arial")
+      .style("font-weight", "bold")
+      .text(`${stationNames[d.station] || d.station} - ${Math.round(d.value)}`);
+
+    if (coordinates) {
+      map.eachLayer(function(layer) {
+        if (layer instanceof L.CircleMarker) {
+          const latLng = layer.getLatLng();
+          if (latLng.lat === coordinates.lat && latLng.lng === coordinates.lon) {
+            layer.setStyle({
+              fillColor: "#73ff00",
+              color: "#73ff00",
+              fillOpacity: 1,
+              radius: layer.options.radius * 1.5
+            });
+          }
+        }
+      });
+    }
+  })
+  .on("mouseout", function(event, d) {
+    const coordinates = stationCoordinates[d.station];
+
+    g.selectAll(".bar-tooltip").remove();
+
+    if (coordinates) {
+      map.eachLayer(function(layer) {
+        if (layer instanceof L.CircleMarker) {
+          const latLng = layer.getLatLng();
+          if (latLng.lat === coordinates.lat && latLng.lng === coordinates.lon) {
+            const index = yearData.findIndex((station) => station.station === d.station);
+            const originalColor = index < 6 ? colorScale(index / 5) : "#9fa8b5";
+            layer.setStyle({
+              fillColor: originalColor,
+              color: originalColor,
+              fillOpacity: 0.7,
+              radius: Math.max(5, d.value / 7500)
+            });
+          }
+        }
+      });
+    }
+  })
+  .transition()
+  .duration(duration)
+  .attr("rx", 5)
+  .attr("y", (d) => yScale(d.station));
+     
           barsGroup.lower();
           texts.exit().transition().duration(duration).attr("y", innerHeight + 50).remove();
           texts.transition().duration(duration).attr("x", (d) => xScale(d.value) - 70).style("font-size", "20").attr("y", (d) => yScale(d.station) + yScale.bandwidth() / 2 + 5).text((d) => Math.round(d.value));
@@ -1027,8 +1137,7 @@ const mapContainer = document.getElementById('map-container');
     }
   });
 }
-
-      
+     
 
       document.getElementById("toggle-map-button").addEventListener("click", toggleMap);
 
@@ -1167,7 +1276,7 @@ const tooltip2 = d3.select("#tooltip");
 
 let data2 = [];
 
-d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/ticino_stations.csv").then(rawData => {
+d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/final_dataset.csv").then(rawData => {
   console.log(rawData);
   data2 = rawData.filter(d => d.Canton === "TI").map(d => {
     return Object.entries(d).filter(([key]) => key.startsWith("Year mean")).map(([key, value]) => {
@@ -1296,7 +1405,7 @@ g3.append("text")
 g3.append("text")
   .attr("class", "y-axis-label")
   .attr("x", -innerHeight2 / 2)
-  .attr("y", -60)
+  .attr("y", -75)
   .attr("transform", "rotate(-90)")
   .attr("text-anchor", "middle")
   .style("fill", "white")
@@ -1424,7 +1533,7 @@ const container3 = document.getElementById("svg-container4");
 const width4 = container3.clientWidth;
 const height4 = container3.clientHeight;
 
-const margin4 = { top: 20, right: 100, bottom: 80, left: 100 };
+const margin4 = { top: 20, right: 200, bottom: 80, left: 100 };
 const innerWidth4 = width4 - margin4.left - margin4.right;
 const innerHeight4 = height4 - margin4.top - margin4.bottom;
 
@@ -1432,10 +1541,15 @@ const g4 = svg4.append("g").attr("transform", `translate(${margin4.left},${margi
 const xAxisGroup4 = g4.append("g").attr("transform", `translate(0,${innerHeight4})`);
 const yAxisGroup4 = g4.append("g");
 
+const legendGroup = svg4.append("g")
+  .attr("transform", `translate(${innerWidth4 + 50}, ${margin4.top})`)
+  .attr("class", "legend-group")
+  .style("visibility", "hidden");
+
 g4.append("text")
   .attr("class", "x-axis-label")
-  .attr("x", innerWidth2 / 2)
-  .attr("y", innerHeight2 + 50)
+  .attr("x", innerWidth4 / 2)
+  .attr("y", innerHeight4 + 50)
   .attr("text-anchor", "middle")
   .style("fill", "white")
   .style("font-size", "16px")
@@ -1444,8 +1558,8 @@ g4.append("text")
 
 g4.append("text")
   .attr("class", "y-axis-label")
-  .attr("x", -innerHeight2 / 2)
-  .attr("y", -60)
+  .attr("x", -innerHeight4 / 2)
+  .attr("y", -75)
   .attr("transform", "rotate(-90)")
   .attr("text-anchor", "middle")
   .style("fill", "white")
@@ -1453,11 +1567,10 @@ g4.append("text")
   .style("font-family", "Helvetica")
   .text("Daily Vehicle Count");
 
-
 const colorScale4 = d3.scaleOrdinal(d3.schemeCategory10);
 
 const xScale4 = d3.scalePoint().range([0, innerWidth4]);
-const yScale4 = d3.scaleLinear().range([innerHeight4, 0]).domain([0, 100000]);
+const yScale4 = d3.scaleLinear().range([innerHeight4, 0]);
 
 const lineGenerator4 = d3.line()
   .x(d => xScale4(d.month))
@@ -1471,6 +1584,7 @@ let aggregatedData = [];
 let topStations = [];
 let viewMode = "average";
 const pointRadius4 = 4;
+let activeStations = new Set();
 
 d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/2023_ticino.csv").then(rawData => {
   const months = ["January", "February", "March", "April", "Mai", "June", "July", "August", "September", "October", "November", "December"];
@@ -1501,6 +1615,8 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
     .slice(0, 6)
     .map(d => d[0]);
 
+  activeStations = new Set(topStations);
+
   xScale4.domain(months);
 
   const xAxis4 = d3.axisBottom(xScale4);
@@ -1510,10 +1626,6 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
     .style("font-family", "Helvetica");
 
   const yAxis4 = d3.axisLeft(yScale4);
-  yAxisGroup4.call(yAxis4).selectAll("text")
-    .style("fill", "white")
-    .style("font-size", "14px")
-    .style("font-family", "Helvetica");
 
   const updateChart = () => {
     g4.selectAll(".line").remove();
@@ -1521,7 +1633,21 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
 
     let dataToRender = viewMode === "average" 
       ? [aggregatedData] 
-      : d3.groups(data4.filter(d => topStations.includes(d.station)), d => d.station).map(([station, values]) => values);
+      : d3.groups(data4.filter(d => activeStations.has(d.station)), d => d.station).map(([station, values]) => values);
+
+    const visibleStations = viewMode === "average" 
+      ? aggregatedData 
+      : dataToRender.flat();
+
+    const yMax = d3.max(visibleStations, d => d.value);
+    const yMin = d3.min(visibleStations, d => d.value);
+
+    yScale4.domain([yMin, yMax]);
+
+    yAxisGroup4.transition().duration(500).call(d3.axisLeft(yScale4).tickFormat(d3.format("~s")));
+    g4.selectAll("text").style(
+      "font-size", "14px",
+    );
 
     g4.selectAll(".line")
       .data(dataToRender, d => (viewMode === "average" ? "average" : d[0].station))
@@ -1551,14 +1677,11 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
           .attr("cy", d => yScale4(d.value))
           .attr("r", 0)
           .attr("fill", (d, i) => viewMode === "average" ? "#d18400" : colorScale4(d.station))
-          .style("z-index", 1000)
           .on("mouseover", (event, d) => {
             tooltip4.style("visibility", "visible")
               .text(viewMode === "average"
                 ? `Month: ${d.month}, Mean: ${d.value.toFixed(0)}`
                 : `Station: ${d.station}, Month: ${d.month}, Value: ${d.value}`)
-              .style("top", `${event.pageY - 10}px`)
-              .style("left", `${event.pageX + 10}px`);
           })
           .on("mouseout", () => tooltip4.style("visibility", "hidden"))
           .transition()
@@ -1566,17 +1689,61 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
           .duration(500)
           .attr("r", pointRadius4)
       );
+
+    legendGroup.style("visibility", viewMode === "average" ? "hidden" : "visible");
+  };
+
+  const updateLegend = () => {
+    legendGroup.selectAll(".legend-item").remove();
+
+    legendGroup.selectAll(".legend-item")
+      .data(topStations)
+      .enter()
+      .append("g")
+      .attr("class", "legend-item")
+      .attr("transform", (d, i) => `translate(0, ${i * 25})`)
+      .each(function(d) {
+        const legendItem = d3.select(this);
+
+        legendItem.append("rect")
+          .attr("x", 0)
+          .attr("y", -10)
+          .attr("width", 20)
+          .attr("height", 20)
+          .attr("fill", () => activeStations.has(d) ? colorScale4(d) : "gray")
+          .style("cursor", "pointer")
+          .on("click", () => {
+            if (activeStations.has(d)) {
+              activeStations.delete(d);
+            } else {
+              activeStations.add(d);
+            }
+            updateChart();
+            updateLegend();
+          });
+
+        legendItem.append("text")
+          .attr("x", 30)
+          .attr("y", 0)
+          .attr("dy", "0.35em")
+          .style("fill", "white")
+          .style("font-size", "14px")
+          .style("font-family", "Helvetica")
+          .text(d);
+      });
   };
 
   d3.select("#toggleButton").on("click", () => {
     viewMode = viewMode === "average" ? "stations" : "average";
     updateChart();
+    updateLegend();
   });
 
   const animateOnViewport = (entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         updateChart();
+        updateLegend();
       } else {
         g4.selectAll(".line, .point").remove();
       }
@@ -1587,14 +1754,12 @@ d3.csv("https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/hea
   observer.observe(svg4.node());
 
   updateChart();
+  updateLegend();
 });
 
 
 
-
 // MAPPA
-
-
 const mapDiv = document.getElementById("map-container-2");
 const sliderDiv = document.getElementById("slider-container-2");
 
@@ -1608,56 +1773,46 @@ const sliderElement = document.createElement("div");
 sliderDiv.appendChild(sliderElement);
 
 noUiSlider.create(sliderElement, {
-    start: [48],
+    start: [0],
     range: {
         min: 0,
-        max: 48
+        max: 23.5
     },
     step: 0.5,
-    tooltips: true,
+    pips: {
+      mode: "range",
+      start: 0,
+      density: 3,
+    },
     format: {
         to: (value) => {
-            const now = new Date();
-            const hoursAgo = 48 - value;
-            const targetDate = new Date(now);
-            targetDate.setHours(now.getHours() - hoursAgo);
-
-            const dayOptions = {
-                weekday: 'long'
-            };
-            const dayName = targetDate.toLocaleDateString('en-US', dayOptions);
-
-            let hour = targetDate.getHours();
-            let minute = targetDate.getMinutes();
-
-            minute = Math.floor(minute / 30) * 30;
-
-            if (minute === 0 && targetDate.getMinutes() >= 30) {
-                hour += 1;
-            }
-
-            const formattedTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-            const timeOffset = `${-Math.floor(hoursAgo)}:${String(Math.round((value % 1) * 60)).padStart(2, '0')}`;
-
-            return `${dayName}, ${formattedTime} (${timeOffset}h)`;
+            const hour = Math.floor(value);
+            const minutes = value % 1 === 0 ? "00" : "30";
+            
+            return `${String(hour).padStart(2, '0')}:${minutes}`;
         },
-        from: (value) => parseFloat(value),
+        from: (value) => parseFloat(value.replace(":", ".")),
     },
 });
 
 let activePolylines = [];
 let trafficData = [];
+let timeLabels = [];
 let lastActiveTimeIndex = 0;
-let lastSliderUpdateTimestamp = 0;
-const sliderUpdateDelay = 10;
 
 async function fetchTrafficData(csvUrl) {
     const response = await fetch(csvUrl);
     if (!response.ok) throw new Error(`Failed to fetch ${csvUrl}`);
     const csvContent = await response.text();
-    const parsedData = csvContent.split("\n").slice(1).filter(Boolean).map((line) => {
-        const [locationData, maxSpeed, ...speedValues] = line.split(";");
-        let cleanLocationData = locationData.trim();
+
+    const [headerLine, ...dataLines] = csvContent.split("\n").filter(Boolean);
+    const headers = headerLine.split(";").map(header => header.trim());
+
+    timeLabels = headers.slice(2);
+
+    return dataLines.map((line) => {
+        const values = line.split(";");
+        let cleanLocationData = values[0].trim();
         cleanLocationData = cleanLocationData.replace(/\(/g, '[').replace(/\)/g, ']');
         cleanLocationData = cleanLocationData.replace(/(\d),(\d)/g, '$1.$2');
         cleanLocationData = cleanLocationData.replace(/[\r\n]/g, '');
@@ -1667,24 +1822,30 @@ async function fetchTrafficData(csvUrl) {
         } catch (error) {
             parsedCoordinates = [];
         }
+
         return {
             coordinates: parsedCoordinates,
-            maxSpeed: +maxSpeed,
-            speeds: speedValues.map(Number)
+            maxSpeed: +values[1],
+            speeds: Object.fromEntries(
+                timeLabels.map((label, index) => [label, +values[index + 2] || null])
+            )
         };
     });
-    return parsedData;
 }
 
-function renderTrafficDataOnMap(data, timeIndex) {
-    data.forEach(({
-        coordinates,
-        maxSpeed,
-        speeds
-    }, i) => {
+function renderTrafficDataOnMap(data, timeLabel) {
+    if (!timeLabel) return;
+
+    data.forEach(({ coordinates, maxSpeed, speeds }, i) => {
         if (coordinates && coordinates.length > 1) {
             const latLngCoordinates = coordinates.map(([lng, lat]) => [lat, lng]);
-            const currentSpeed = speeds[timeIndex];
+            const currentSpeed = speeds[timeLabel];
+
+            if (currentSpeed === undefined || isNaN(currentSpeed)) {
+                console.warn(`No valid speed data for timeLabel ${timeLabel} for segment ${i}`);
+                return;
+            }
+
             const speedRatio = currentSpeed / maxSpeed;
             let lineColor = "red";
             if (speedRatio > 0.8) {
@@ -1693,85 +1854,89 @@ function renderTrafficDataOnMap(data, timeIndex) {
                 lineColor = "orange";
             }
 
-            if (activePolylines[i]) {
-                const polyline = activePolylines[i];
-                polyline.setStyle({
-                    color: lineColor,
-                    opacity: 0.7
-                });
-                const tooltip = polyline.getTooltip();
-                if (tooltip) {
-                    tooltip.setContent(`Current speed: ${currentSpeed} km/h<br>Speed limit: ${maxSpeed} km/h`);
-                }
-            } else {
-                if (leafletMap.getBounds().contains(latLngCoordinates[0])) {
-                    const polyline = L.polyline(latLngCoordinates, {
-                        color: lineColor,
-                        weight: 5,
-                        opacity: 0.7
-                    }).addTo(leafletMap);
-                    polyline.on('mouseover', (e) => {
-                        const hoverLocation = e.latlng || e.latlngs[0];
-                        const hoverContent = `Current speed: ${currentSpeed} km/h<br>Speed limit: ${maxSpeed} km/h`;
-                        e.target.bindTooltip(hoverContent).openTooltip(hoverLocation);
-                    });
+            const polyline = L.polyline(latLngCoordinates, {
+                color: lineColor,
+                weight: 5,
+                opacity: 0.7
+            }).addTo(leafletMap);
 
-                    polyline.on('mouseout', (e) => {
-                        e.target.closeTooltip();
-                    });
+            polyline.on('mouseover', (e) => {
+                const hoverLocation = e.latlng || e.latlngs[0];
+                const hoverContent = `Current speed: ${currentSpeed} km/h<br>Speed limit: ${maxSpeed} km/h`;
+                e.target.bindTooltip(hoverContent).openTooltip(hoverLocation);
+            });
 
-                    activePolylines[i] = polyline;
-                }
-            }
+            polyline.on('mouseout', (e) => {
+                e.target.closeTooltip();
+            });
+
+            activePolylines[i] = polyline;
         }
     });
 }
 
-function formatDateForFileName(daysAgo) {
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() - daysAgo);
-    const year = targetDate.getFullYear();
-    const month = String(targetDate.getMonth() + 1).padStart(2, "0");
-    const day = String(targetDate.getDate()).padStart(2, "0");
+
+function formatDateForFileName(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${day}_${month}_${year}`;
 }
 
-function calculateTimeIndex(sliderValue) {
-    const hoursAgo = 48 + sliderValue;
-    const now = new Date();
-    const targetTime = new Date(now);
-    targetTime.setHours(now.getHours() - hoursAgo);
-    const hour = targetTime.getHours();
-    const minute = targetTime.getMinutes();
-    const timeLabels = [
-        "00_30", "01_00", "02_30", "03_00", "03_30", "04_00", "05_30", "06_00", "06_30", "08_00",
-        "08_30", "10_00", "10_30", "12_00", "12_30", "13_00", "14_30", "16_00", "17_30", "19_00",
-        "20_30", "22_00", "23_30"
-    ];
-    const currentTimeLabel = `${String(hour).padStart(2, '0')}_${String(Math.floor(minute / 30) * 30).padStart(2, '0')}`;
-    const matchedIndex = timeLabels.indexOf(currentTimeLabel);
-    return matchedIndex === -1 ? lastActiveTimeIndex : matchedIndex;
-}
+async function initializeTrafficMap(selectedDate) {
+    const date = new Date(selectedDate);
+    const formattedDate = formatDateForFileName(date);
+    const dataUrl = `https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/his_data/t_data_${formattedDate}.csv`;
 
-async function initializeTrafficMap() {
-    const pastDates = [0, 1, 2].map((daysAgo) => formatDateForFileName(daysAgo));
-    const dataUrls = pastDates.map(
-        (date) =>
-        `https://raw.githubusercontent.com/qLessqndr/road_traffic_ticino/refs/heads/main/his_data/t_data_${date}.csv`
-    );
     try {
-        const csvDatasets = await Promise.all(dataUrls.map(fetchTrafficData));
-        trafficData = csvDatasets.flat();
-        renderTrafficDataOnMap(trafficData, 0);
+        const csvData = await fetchTrafficData(dataUrl);
+        trafficData = csvData;
+        renderTrafficDataOnMap(trafficData, timeLabels[0]);
+
+        const maxHour = parseInt(timeLabels[timeLabels.length-1].replace("_","").replace("30",""))+2;
+
+        hours = Array.from({length:maxHour},(v,k)=>k)
+
+
+        sliderElement.noUiSlider.updateOptions({
+          pips: {
+            values: hours,
+            mode: "values",
+            density: 3,
+            max: [maxHour],
+          },
+            range: {
+              min: 0,
+              max: [maxHour-1],
+            },
+            start: 0,
+            step: 1,
+            format: {
+                to: (index) => timeLabels[index] || "",
+                from: (value) => timeLabels.indexOf(value)
+            }
+        });
+
+        
+        if (maxHour >= 23) {
+          sliderElement.noUiSlider.updateOptions({
+            pips: {      
+              values: hours,
+              mode: "values",
+              density: 2,
+              max: [maxHour-1],
+            }
+          })
+        }
 
         sliderElement.noUiSlider.on("slide", ([value]) => {
-            const currentTimestamp = Date.now();
-            if (currentTimestamp - lastSliderUpdateTimestamp > sliderUpdateDelay) {
-                const numericSliderValue = parseFloat(value.match(/-?\d+(\.\d+)?/)[0]);
-                const timeIndex = calculateTimeIndex(parseInt(numericSliderValue));
-                renderTrafficDataOnMap(trafficData, timeIndex);
-                lastSliderUpdateTimestamp = currentTimestamp;
-                lastActiveTimeIndex = timeIndex;
+            const roundedValue = Math.round(value);
+            const timeLabel = value;
+            console.warn(timeLabel);
+            if (timeLabel) {
+                renderTrafficDataOnMap(trafficData, timeLabel);
+            } else {
+                console.warn(`Invalid slider value: ${value}`);
             }
         });
     } catch (error) {
@@ -1779,30 +1944,25 @@ async function initializeTrafficMap() {
     }
 }
 
-initializeTrafficMap();
+initializeTrafficMap(Date.now());
 
 
-    const datePicker = document.getElementById('date-picker');
-    const showDatePickerButton = document.getElementById('show-date-picker');
-    const selectedDateDisplay = document.getElementById('selected-date');
+const datePickerButton = document.getElementById("date-picker-button");
 
-    const today = new Date().toISOString().split('T')[0];
-    datePicker.max = today;
+const datePicker = document.getElementById("date-picker");
 
-    showDatePickerButton.addEventListener('click', () => {
-      datePicker.style.display = 'block';
-      datePicker.focus();
-    });
+const today = new Date();
+const minDate = new Date("2024-10-30");
 
-    datePicker.addEventListener('change', () => {
-      const selectedDate = datePicker.value;
-      initializeTrafficMap(selectedDate);
-    });
+datePicker.min = minDate.toISOString().split("T")[0];
+datePicker.max = today.toISOString().split("T")[0];
 
-    function updateSelectedDate(date) {
-      selectedDateDisplay.textContent = `Data selezionata: ${date}`;
-      console.log("Data scelta:", date);
+datePicker.addEventListener("change", (event) => {
+    const selectedDate = event.target.value;
+    if (selectedDate) {
+        initializeTrafficMap(selectedDate);
     }
+});
 
 window.addEventListener('resize', () => {
       location.reload(); });
